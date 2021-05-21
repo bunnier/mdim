@@ -3,17 +3,17 @@ package main
 import (
 	"fmt"
 
-	"mdic/utils"
+	"mdic/core"
 )
 
 func main() {
 	// Deal with options.
-	cliOptions := utils.GetOptions()
+	cliOptions := core.GetOptions()
 
 	fmt.Println("Starting to scan markdown document..")
 
 	// The keys are all image paths.
-	allRefImgsMap, aggErr := utils.ScanToFixImgRelPath(cliOptions.DocFolder, cliOptions.ImgFolder, cliOptions.DoRelPathFix)
+	allRefImgsMap, aggErr := core.ScanToFixImgRelPath(cliOptions.DocFolder, cliOptions.ImgFolder, cliOptions.DoRelPathFix)
 	if aggErr != nil {
 		aggErr.PrintAggregateError()
 		return
@@ -22,7 +22,7 @@ func main() {
 	fmt.Println("Starting to scan images..")
 
 	// Delete no reference images.
-	if errs := utils.DelNoRefImgs(cliOptions.ImgFolder, allRefImgsMap, cliOptions.DoImgDel); errs != nil {
+	if errs := core.DelNoRefImgs(cliOptions.ImgFolder, allRefImgsMap, cliOptions.DoImgDel); errs != nil {
 		errs.PrintAggregateError()
 		return
 	}

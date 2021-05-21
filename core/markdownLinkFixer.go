@@ -1,4 +1,4 @@
-package utils
+package core
 
 import (
 	"bufio"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"mdic/errs"
+	"mdic/core/types"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -16,7 +16,7 @@ import (
 
 // Scan docs in docFolder to fix image relative path.
 // The first return map's keys are all reference images paths
-func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[string]interface{}, errs.AggregateError) {
+func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[string]interface{}, types.AggregateError) {
 	var errCh chan error = make(chan error)
 	var imgPathCh chan string = make(chan string)
 	var wg sync.WaitGroup = sync.WaitGroup{}
@@ -43,7 +43,7 @@ func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[st
 	})
 
 	allRefImgsMap := make(map[string]interface{}, 100)
-	aggErr := errs.NewAggregateError()
+	aggErr := types.NewAggregateError()
 
 	// Waiting for all goroutine done to close channel.
 	go func(wg *sync.WaitGroup) {
