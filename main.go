@@ -3,14 +3,14 @@ package main
 import (
 	"fmt"
 
-	"mdic/helper"
+	"mdic/utils"
 )
 
 func main() {
 	// Deal with options.
-	var cliOptions *helper.CliOptions
+	var cliOptions *utils.CliOptions
 	var err error
-	if cliOptions, err = helper.GetOptions(); err != nil {
+	if cliOptions, err = utils.GetOptions(); err != nil {
 		println(err.Error())
 		return
 	}
@@ -18,17 +18,17 @@ func main() {
 	fmt.Println("Starting to scan markdown document..")
 
 	// The keys are all image paths.
-	allRefImagesMap, errs := helper.ScanToFixImgRelPath(cliOptions.DocFolder, cliOptions.ImgFolder, cliOptions.DoFix)
+	allRefImagesMap, errs := utils.ScanToFixImgRelPath(cliOptions.DocFolder, cliOptions.ImgFolder, cliOptions.DoFix)
 	if errs != nil {
-		helper.PrintAggregateError(errs)
+		utils.PrintAggregateError(errs)
 		return
 	}
 
 	fmt.Println("Starting to scan images..")
 
 	// Delete no reference images.
-	if errs := helper.DelNoRefImags(cliOptions.ImgFolder, allRefImagesMap, cliOptions.DoDel); errs != nil {
-		helper.PrintAggregateError(errs)
+	if errs := utils.DelNoRefImags(cliOptions.ImgFolder, allRefImagesMap, cliOptions.DoDel); errs != nil {
+		utils.PrintAggregateError(errs)
 		return
 	}
 
