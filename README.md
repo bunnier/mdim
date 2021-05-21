@@ -2,7 +2,7 @@
 
 [![Go](https://github.com/bunnier/mdic/actions/workflows/go.yml/badge.svg)](https://github.com/bunnier/mdic/actions/workflows/go.yml)
 
-The tool will help you maintain the image relative paths of markdown files and cleanup no reference images.
+The tool will help to maintain the image relative paths of markdown files and cleanup no reference images.
 
 Install:
 
