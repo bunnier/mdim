@@ -7,15 +7,10 @@ import (
 )
 
 func main() {
-	var (
-		docFolder string
-		imgFolder string
-		doFix     bool
-		doDel     bool
-	)
-
 	// Deal with options.
-	if err := helper.ParseParams(&docFolder, &imgFolder, &doFix, &doDel); err != nil {
+	var cliOptions *helper.CliOptions
+	var err error
+	if cliOptions, err = helper.GetOptions(); err != nil {
 		println(err.Error())
 		return
 	}
@@ -23,7 +18,7 @@ func main() {
 	fmt.Println("Starting to scan markdown document..")
 
 	// The keys are all image paths.
-	allRefImagesMap, errs := helper.ScanToFixImgRelPath(docFolder, imgFolder, doFix)
+	allRefImagesMap, errs := helper.ScanToFixImgRelPath(cliOptions.DocFolder, cliOptions.ImgFolder, cliOptions.DoFix)
 	if errs != nil {
 		helper.PrintAggregateError(errs)
 		return
@@ -32,7 +27,7 @@ func main() {
 	fmt.Println("Starting to scan images..")
 
 	// Delete no reference images.
-	if errs := helper.DelNoRefImags(imgFolder, allRefImagesMap, doDel); errs != nil {
+	if errs := helper.DelNoRefImags(cliOptions.ImgFolder, allRefImagesMap, cliOptions.DoDel); errs != nil {
 		helper.PrintAggregateError(errs)
 		return
 	}
