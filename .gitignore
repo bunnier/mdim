@@ -4,9 +4,9 @@
 *.dll
 *.so
 *.dylib
-mdic
+mdim
 main
-mdic.exe
+mdim.exe
 main.exe
 
 # Test binary, built with `go test -c`

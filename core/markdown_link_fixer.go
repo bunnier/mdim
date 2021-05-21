@@ -12,7 +12,7 @@ import (
 	"strings"
 	"sync"
 
-	"mdic/core/types"
+	"mdim/core/types"
 )
 
 // Scan docs in docFolder to fix image relative path.

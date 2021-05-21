@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"mdic/core/types"
+	"mdim/core/types"
 )
 
 // Iterate imageFolder to find & delete no reference images.

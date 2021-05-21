@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"mdic/core"
+	"mdim/core"
 )
 
 func main() {

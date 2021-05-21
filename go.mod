@@ -1,3 +1,3 @@
-module mdic
+module mdim
 
 go 1.16
