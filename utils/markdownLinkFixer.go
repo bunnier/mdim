@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"mdic/errs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -15,7 +16,7 @@ import (
 
 // Scan docs in docFolder to fix image relative path.
 // The first return map's keys are all reference images paths
-func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[string]interface{}, AggregateErr) {
+func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[string]interface{}, errs.AggregateError) {
 	var errCh chan error = make(chan error)
 	var imgPathCh chan string = make(chan string)
 	var wg sync.WaitGroup = sync.WaitGroup{}
@@ -42,7 +43,7 @@ func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[st
 	})
 
 	allRefImgsMap := make(map[string]interface{}, 100)
-	aggregateErr := make(AggregateErr, 0)
+	aggErr := errs.NewAggregateError()
 
 	// Waiting for all goroutine done to close channel.
 	go func(wg *sync.WaitGroup) {
@@ -58,7 +59,7 @@ func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[st
 		select {
 		case err, chOpen = <-errCh:
 			if chOpen {
-				aggregateErr = append(aggregateErr, err)
+				aggErr.AddError(err)
 			}
 		case imgPath, chOpen = <-imgPathCh:
 			if chOpen {
@@ -71,10 +72,10 @@ func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[st
 		}
 	}
 
-	if len(errCh) == 0 {
+	if aggErr.Len() == 0 {
 		return allRefImgsMap, nil
 	} else {
-		return nil, aggregateErr
+		return nil, aggErr
 	}
 }
 

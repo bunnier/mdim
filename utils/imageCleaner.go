@@ -2,15 +2,17 @@ package utils
 
 import (
 	"fmt"
+	"mdic/errs"
 	"os"
 	"path/filepath"
 	"sync"
 )
 
 // Iterate imageFolder to find & delete no reference images.
-func DelNoRefImgs(imgFolder string, referenceMap map[string]interface{}, doImgDel bool) AggregateErr {
+func DelNoRefImgs(imgFolder string, referenceMap map[string]interface{}, doImgDel bool) errs.AggregateError {
 	if imgs, err := os.ReadDir(imgFolder); err != nil {
-		return AggregateErr{fmt.Errorf("images: open folder failed %s %w", imgFolder, err)}
+		err := fmt.Errorf("images: open folder failed %s %w", imgFolder, err)
+		return errs.NewAggregateError().AddError(err)
 	} else {
 		errCh := make(chan error) // error channel
 		wg := sync.WaitGroup{}
@@ -41,19 +43,19 @@ func DelNoRefImgs(imgFolder string, referenceMap map[string]interface{}, doImgDe
 		}(&wg)
 
 		// channel receiver
-		aggregateErr := make(AggregateErr, 0, 0) // Expect 0 error, hah~
+		aggErr := errs.NewAggregateError() // Expect 0 error, hah~
 		for {
 			if err, ok := <-errCh; ok {
-				aggregateErr = append(aggregateErr, err)
+				aggErr.AddError(err)
 			} else {
 				break
 			}
 		}
 
-		if len(aggregateErr) == 0 {
+		if aggErr.Len() == 0 {
 			return nil
 		} else {
-			return aggregateErr
+			return aggErr
 		}
 	}
 }
