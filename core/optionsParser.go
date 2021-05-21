@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-// Command-line options
+// Command-line options.
 type CliOptions struct {
 	DocFolder    string
 	ImgFolder    string

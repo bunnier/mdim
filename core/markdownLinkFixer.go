@@ -21,6 +21,7 @@ func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[st
 	var imgPathCh chan string = make(chan string)
 	var wg sync.WaitGroup = sync.WaitGroup{}
 
+	// Error will pass to errCh.
 	_ = filepath.WalkDir(docFolder, func(docPath string, d os.DirEntry, err error) error {
 		// Just deal with markdown docs.
 		if d.IsDir() || !strings.HasSuffix(docPath, ".md") {
@@ -128,12 +129,13 @@ func FixImgRelPath(docPath string, imgFolder string, doRelPathFix bool) ([]strin
 						return newLine
 					}
 				})
+
 				if replaceErr != nil {
 					return nil, replaceErr
 				}
 
 				if _, err := byteStream.WriteString(newline); err != nil {
-					_ = fmt.Errorf("docs: write fixed string error %s, %w", docPath, err)
+					return nil, fmt.Errorf("docs: write fixed string error %s, %w", docPath, err)
 				}
 			}
 		}
