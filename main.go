@@ -8,12 +8,7 @@ import (
 
 func main() {
 	// Deal with options.
-	var cliOptions *utils.CliOptions
-	var err error
-	if cliOptions, err = utils.GetOptions(); err != nil {
-		println(err.Error())
-		return
-	}
+	cliOptions := utils.GetOptions()
 
 	fmt.Println("Starting to scan markdown document..")
 

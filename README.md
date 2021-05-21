@@ -4,11 +4,11 @@
 
 The tool will help you maintain the image relative paths of markdown files and cleanup no reference images.
 
-Compile:
+Install:
 
 ```bash
 cd ./mdic
-go build
+go install
 ```
 
 Usage:
@@ -22,5 +22,5 @@ Options:
 - `-d` Set the option to delete no reference images.
 - `-f` Set the option to fix image relative paths of markdown documents.
 - `-h` Show this help.
-- `-i string` The folder images save in.
-- `-m string` The folder markdown documents save in.
+- `-i string` Must be not empty. The folder images save in.
+- `-m string` Must be not empty. The folder markdown documents save in.

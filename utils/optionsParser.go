@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -16,7 +15,7 @@ type CliOptions struct {
 }
 
 // Deal with cli params.
-func GetOptions() (*CliOptions, error) {
+func GetOptions() *CliOptions {
 	var help bool
 	CliParams := &CliOptions{}
 
@@ -24,24 +23,18 @@ func GetOptions() (*CliOptions, error) {
 	flag.BoolVar(&help, "h", false, "Show this help.")
 	flag.BoolVar(&CliParams.DoFix, "f", false, "Set the option to fix image relative paths of markdown documents.")
 	flag.BoolVar(&CliParams.DoDel, "d", false, "Set the option to delete no reference images.")
-	flag.StringVar(&CliParams.DocFolder, "m", "", "The folder markdown documents save in")
-	flag.StringVar(&CliParams.ImgFolder, "i", "", "The folder images save in")
+	flag.StringVar(&CliParams.DocFolder, "m", "", "Must be not empty. The folder markdown documents save in")
+	flag.StringVar(&CliParams.ImgFolder, "i", "", "Must be not empty. The folder images save in")
 
 	flag.Parse()
 
-	if help { // Show usage and then exit directly.
+	// Show usage and then exit directly.
+	if help || CliParams.ImgFolder == "" || CliParams.DocFolder == "" {
 		flag.Usage()
 		os.Exit(0)
 	}
 
-	switch {
-	case CliParams.DocFolder == "":
-		return nil, errors.New("param: missiong -m")
-	case CliParams.ImgFolder == "":
-		return nil, errors.New("param: missiong -i")
-	}
-
-	return CliParams, nil
+	return CliParams
 }
 
 func usage() {
