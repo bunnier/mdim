@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/fs"
 	"mdic/core/types"
 	"os"
 	"path/filepath"
@@ -90,13 +89,12 @@ func FixImgRelPath(docPath string, imgFolder string, doRelPathFix bool) ([]strin
 	var changed bool = false
 	var byteStream bytes.Buffer            // Put the fixed text.
 	imgPathsSlice := make([]string, 0, 20) // result
-	var filePerm fs.FileMode
 
 	fileInfo, err := os.Lstat(docPath) // to get perm
 	if err != nil {
 		return nil, fmt.Errorf("docs: open failed %s %w", docPath, err)
 	}
-	filePerm = fileInfo.Mode().Perm()
+	filePerm := fileInfo.Mode().Perm() // file perm
 
 	file, err := os.OpenFile(docPath, os.O_RDWR, filePerm)
 	if err != nil {
@@ -147,23 +145,20 @@ func FixImgRelPath(docPath string, imgFolder string, doRelPathFix bool) ([]strin
 	}
 	file.Close()
 
-	// Write result to original path.
-	if changed {
-		if doRelPathFix {
-			file, err := os.OpenFile(docPath, os.O_RDWR|os.O_TRUNC, filePerm)
-			if err != nil {
-				return nil, fmt.Errorf("docs: writing open failed %s %w", docPath, err)
-			}
-			defer file.Close()
-
-			if _, err := file.WriteString(byteStream.String()); err != nil {
-				return nil, fmt.Errorf("docs: writing failed %s %w", docPath, err)
-			}
-			fmt.Println("docs: fixed successfully", docPath)
-		} else {
-			fmt.Println("docs: find a document with error relative path", docPath)
-		}
+	if !changed || !doRelPathFix {
+		return imgPathsSlice, nil
 	}
 
+	// Write result to original path.
+	file, err = os.OpenFile(docPath, os.O_RDWR|os.O_TRUNC, filePerm)
+	if err != nil {
+		return nil, fmt.Errorf("docs: writing open failed %s %w", docPath, err)
+	}
+	defer file.Close()
+
+	if _, err := file.WriteString(byteStream.String()); err != nil {
+		return nil, fmt.Errorf("docs: writing failed %s %w", docPath, err)
+	}
+	fmt.Println("docs: fixed successfully", docPath)
 	return imgPathsSlice, nil
 }
