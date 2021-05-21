@@ -1,6 +1,7 @@
 # mdic - Markdown Images Cleaner
 
 [![Go](https://github.com/bunnier/mdic/actions/workflows/go.yml/badge.svg)](https://github.com/bunnier/mdic/actions/workflows/go.yml)
+[![CodeQL](https://github.com/bunnier/mdic/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/bunnier/mdic/actions/workflows/codeql-analysis.yml)
 
 The tool will help to maintain the image relative paths of markdown files and cleanup no reference images.
 
