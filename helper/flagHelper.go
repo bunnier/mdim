@@ -40,7 +40,7 @@ func ParseParams(docFolder *string, imgFolder *string, doFix *bool, doDelete *bo
 func usage() {
 	fmt.Fprintf(os.Stderr, `mdic - Markdown Images Cleaner
 
-Description: The tool will help you maintain the image relative paths of markdown files and delete no reference images.
+Description: The tool will help you maintain the image relative paths of markdown files and cleanup no reference images.
 
 Github: https://github.com/bunnier/MarkdownLocalImageCleaner
 

@@ -11,11 +11,11 @@ func main() {
 		docFolder string
 		imgFolder string
 		doFix     bool
-		doDelete  bool
+		doDel     bool
 	)
 
 	// Deal with options.
-	if err := helper.ParseParams(&docFolder, &imgFolder, &doFix, &doDelete); err != nil {
+	if err := helper.ParseParams(&docFolder, &imgFolder, &doFix, &doDel); err != nil {
 		if err != helper.ExitForHelper {
 			println(err.Error())
 		}
@@ -34,7 +34,7 @@ func main() {
 	fmt.Println("Starting to scan images..")
 
 	// Delete no reference images.
-	if errs := helper.DelNoRefImags(imgFolder, allRefImagesMap, doDelete); errs != nil {
+	if errs := helper.DelNoRefImags(imgFolder, allRefImagesMap, doDel); errs != nil {
 		helper.PrintAggregateError(errs)
 		return
 	}
