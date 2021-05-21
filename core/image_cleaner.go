@@ -3,10 +3,11 @@ package core
 import (
 	"fmt"
 	"io/fs"
-	"mdic/core/types"
 	"os"
 	"path/filepath"
 	"sync"
+
+	"mdic/core/types"
 )
 
 // Iterate imageFolder to find & delete no reference images.

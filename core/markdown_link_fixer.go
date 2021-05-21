@@ -5,12 +5,13 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"mdic/core/types"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"sync"
+
+	"mdic/core/types"
 )
 
 // Scan docs in docFolder to fix image relative path.
