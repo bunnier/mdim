@@ -25,7 +25,7 @@ func main() {
 	fmt.Println("Starting to scan markdown document..")
 
 	// The key is all images list.
-	allRefImagesMap, errs := helper.WalkDocFolderToFix(docFolder, imgFolder, doFix)
+	allRefImagesMap, errs := helper.ScanToFixRelpath(docFolder, imgFolder, doFix)
 	if errs != nil {
 		helper.PrintAggregateError(errs)
 		return

@@ -14,7 +14,7 @@ import (
 
 // Walk Doc folder to fix image relative path.
 // The first return map's key are all reference images paths
-func WalkDocFolderToFix(docFolder string, imgFolder string, doFix bool) (map[string]interface{}, []error) {
+func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[string]interface{}, []error) {
 	var errCh chan error = make(chan error)
 	var imagePathCh chan string = make(chan string)
 	var wg sync.WaitGroup = sync.WaitGroup{}
@@ -28,7 +28,7 @@ func WalkDocFolderToFix(docFolder string, imgFolder string, doFix bool) (map[str
 		wg.Add(1)
 		go func(imagePathCh chan string, errCh chan error, wg *sync.WaitGroup) {
 			defer wg.Done()
-			if imageSlice, err := FixImgRelPathForMarkdown(docPath, imgFolder, doFix); err != nil {
+			if imageSlice, err := FixImgRelPath(docPath, imgFolder, doFix); err != nil {
 				errCh <- err
 			} else {
 				for _, v := range imageSlice {
@@ -79,7 +79,7 @@ func WalkDocFolderToFix(docFolder string, imgFolder string, doFix bool) (map[str
 
 // Fix the image urls of the doc.
 // The first return is all the image paths slice.
-func FixImgRelPathForMarkdown(docPath string, imageFolder string, doFix bool) ([]string, error) {
+func FixImgRelPath(docPath string, imageFolder string, doFix bool) ([]string, error) {
 	imageTagRe := regexp.MustCompile(`!\[([^]]*)]\((?:[\\\./]*(?:(?:[^\\/\n]+[\\/])*)([^\\/\n]+\.png))\)`)
 
 	var changed bool = false
