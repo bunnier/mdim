@@ -12,7 +12,7 @@ func main() {
 
 	fmt.Println("Starting to scan markdown document..")
 
-	// The keys are all image paths.
+	// Scan docs in docFolder to fix image relative path.
 	allRefImgsMap, aggErr := core.ScanToFixImgRelPath(cliOptions.DocFolder, cliOptions.ImgFolder, cliOptions.DoRelPathFix)
 	if aggErr != nil {
 		aggErr.PrintAggregateError()

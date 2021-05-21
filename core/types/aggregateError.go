@@ -16,7 +16,7 @@ type AggregateError interface {
 	PrintAggregateError()
 }
 
-// Return a new AggregateError
+// Return a new AggregateError.
 func NewAggregateError() AggregateError {
 	var _ AggregateError = new(sliceAggregateError) // force build check
 	return new(sliceAggregateError)

@@ -15,7 +15,7 @@ import (
 )
 
 // Scan docs in docFolder to fix image relative path.
-// The first return map's keys are all reference images paths
+// The first return map's keys are all reference images paths.
 func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[string]interface{}, types.AggregateError) {
 	var errCh chan error = make(chan error)
 	var imgPathCh chan string = make(chan string)
@@ -32,10 +32,10 @@ func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[st
 		go func(imgPathCh chan string, errCh chan error, wg *sync.WaitGroup) {
 			defer wg.Done()
 			if imgPathSlice, err := FixImgRelPath(docPath, imgFolder, doFix); err != nil {
-				errCh <- err
+				errCh <- err // Pass error to main goroutine.
 			} else {
 				for _, v := range imgPathSlice {
-					imgPathCh <- v
+					imgPathCh <- v // Pass found image paths to main goroutine.
 				}
 			}
 		}(imgPathCh, errCh, &wg)
@@ -57,6 +57,7 @@ func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[st
 	var err error
 	var imgPath string
 	for {
+		// Receive error & found image path.
 		select {
 		case err, chOpen = <-errCh:
 			if chOpen {

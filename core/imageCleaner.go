@@ -25,6 +25,7 @@ func DelNoRefImgs(imgFolder string, referenceMap map[string]interface{}, doImgDe
 					imgFullPath := filepath.Join(imgFolder, imgName)
 					if doImgDel {
 						if err := os.Remove(imgFullPath); err != nil {
+							// Pass error to main goroutine.
 							errCh <- fmt.Errorf("images: delete file failed %s %w", imgFullPath, err)
 						} else {
 							fmt.Println("images: deleted successfully", imgFullPath)
@@ -42,7 +43,7 @@ func DelNoRefImgs(imgFolder string, referenceMap map[string]interface{}, doImgDe
 			close(errCh)
 		}(&wg)
 
-		// channel receiver
+		// error receiver
 		aggErr := types.NewAggregateError()
 		for {
 			if err, ok := <-errCh; ok {
