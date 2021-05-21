@@ -16,19 +16,19 @@ type AggregateError interface {
 	PrintAggregateError()
 }
 
+// Return a new AggregateError
+func NewAggregateError() AggregateError {
+	var _ AggregateError = new(sliceAggregateError) // force build check
+	return new(sliceAggregateError)
+}
+
 // A implement of AggregateError.
-type SliceAggregateError struct {
+type sliceAggregateError struct {
 	innerErrors []error
 }
 
-// Return a new AggregateError
-func NewAggregateError() AggregateError {
-	var _ AggregateError = new(SliceAggregateError) // force build check
-	return new(SliceAggregateError)
-}
-
 // Add a inner error.
-func (errs *SliceAggregateError) AddError(err error) AggregateError {
+func (errs *sliceAggregateError) AddError(err error) AggregateError {
 	if errs.innerErrors == nil {
 		errs.innerErrors = make([]error, 0, 3)
 	}
@@ -37,12 +37,12 @@ func (errs *SliceAggregateError) AddError(err error) AggregateError {
 }
 
 // Return the inner errors count.
-func (errs *SliceAggregateError) Len() int {
+func (errs *sliceAggregateError) Len() int {
 	return len(errs.innerErrors)
 }
 
 // Print all inner errors by line.
-func (errs *SliceAggregateError) PrintAggregateError() {
+func (errs *sliceAggregateError) PrintAggregateError() {
 	for _, err := range errs.innerErrors {
 		fmt.Println(err)
 	}
