@@ -40,7 +40,7 @@ func usage() {
 
 Description: The tool will help you maintain the image relative paths of markdown files and cleanup no reference images.
 
-Github: https://github.com/bunnier/MarkdownLocalImageCleaner
+Github: https://github.com/bunnier/mdic
 
 Usage: mdic [-dfh] [-i image folder] [-m markdown doc folder] 
 
