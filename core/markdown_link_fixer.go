@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -32,7 +33,7 @@ func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[st
 		go func() {
 			defer wg.Done()
 
-			if imgPathSlice, err := FixImgRelPath(docPath, imgFolder, doFix); err != nil {
+			if imgPathSlice, err := fixImgRelPath(docPath, imgFolder, doFix); err != nil {
 				errCh <- err // Pass error to main goroutine.
 			} else {
 				for _, v := range imgPathSlice {
@@ -84,9 +85,7 @@ func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[st
 
 // Fix the image urls of the doc.
 // The first return is all the image paths slice.
-func FixImgRelPath(docPath string, imgFolder string, doRelPathFix bool) ([]string, error) {
-	imgTagRe := regexp.MustCompile(`!\[([^]]*)]\((?:[\\\./]*(?:(?:[^\\/\n]+[\\/])*)([^\\/\n]+\.png))\)`)
-
+func fixImgRelPath(docPath string, imgFolder string, doRelPathFix bool) ([]string, error) {
 	var changed bool = false
 	var byteStream bytes.Buffer            // Put the fixed text.
 	imgPathsSlice := make([]string, 0, 20) // result
@@ -104,6 +103,8 @@ func FixImgRelPath(docPath string, imgFolder string, doRelPathFix bool) ([]strin
 	defer file.Close()
 
 	reader := bufio.NewReader(file)
+	imgTagRe := regexp.MustCompile(`!\[([^]]*)]\((?:[\\\./]*(?:(?:[^\\/\n]+[\\/])*)([^\\/\n]+\.png))\)`)
+
 	for {
 		line, err := reader.ReadString('\n')
 		if err != nil {
@@ -116,11 +117,10 @@ func FixImgRelPath(docPath string, imgFolder string, doRelPathFix bool) ([]strin
 
 		// Do single line replace.
 		var replaceErr error
-		newline := imgTagRe.ReplaceAllStringFunc(line, func(m string) string {
-			matchPart := imgTagRe.FindStringSubmatch(m)
-			imgTag := matchPart[0]      // whole image tag
-			imgTitle := matchPart[1]    // tag title
-			imgFileName := matchPart[2] // filename
+		newline := imgTagRe.ReplaceAllStringFunc(line, func(matchLine string) string {
+			matchParts := imgTagRe.FindStringSubmatch(matchLine) // matchLine is whole image tag
+			imgTitle := matchParts[1]                            // tag title
+			imgFileName := matchParts[2]                         // filename
 
 			imgAbsPath := filepath.Join(imgFolder, imgFileName)
 			docParentPath := filepath.Dir(docPath)
@@ -128,12 +128,12 @@ func FixImgRelPath(docPath string, imgFolder string, doRelPathFix bool) ([]strin
 			relPath, err := filepath.Rel(docParentPath, imgAbsPath)
 			if err != nil {
 				replaceErr = fmt.Errorf("docs: calcute relative failed, from %s to %s %w", docParentPath, imgAbsPath, err)
-				return m
+				return matchLine
 			}
 			imgPathsSlice = append(imgPathsSlice, imgFileName) // Add path to result.
-			newLine := fmt.Sprintf("![%s](%s)", imgTitle, relPath)
-			changed = changed || newLine != imgTag
-			return newLine
+			newTag := fmt.Sprintf("![%s](%s)", imgTitle, relPath)
+			changed = changed || newTag != matchLine
+			return newTag
 		})
 
 		if replaceErr != nil {
@@ -150,16 +150,24 @@ func FixImgRelPath(docPath string, imgFolder string, doRelPathFix bool) ([]strin
 		return imgPathsSlice, nil
 	}
 
-	// Write result to original path.
-	file, err = os.OpenFile(docPath, os.O_RDWR|os.O_TRUNC, filePerm)
+	// Write fixed content to original path.
+	if err = writeFixedContent(docPath, byteStream.String(), filePerm); err != nil {
+		return nil, err
+	}
+
+	fmt.Println("docs: fixed successfully", docPath)
+	return imgPathsSlice, nil
+}
+
+func writeFixedContent(docPath string, content string, filePerm fs.FileMode) error {
+	file, err := os.OpenFile(docPath, os.O_RDWR|os.O_TRUNC, filePerm)
 	if err != nil {
-		return nil, fmt.Errorf("docs: writing open failed %s %w", docPath, err)
+		return fmt.Errorf("docs: writing open failed %s %w", docPath, err)
 	}
 	defer file.Close()
 
-	if _, err := file.WriteString(byteStream.String()); err != nil {
-		return nil, fmt.Errorf("docs: writing failed %s %w", docPath, err)
+	if _, err := file.WriteString(content); err != nil {
+		return fmt.Errorf("docs: writing failed %s %w", docPath, err)
 	}
-	fmt.Println("docs: fixed successfully", docPath)
-	return imgPathsSlice, nil
+	return nil
 }
