@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -85,8 +86,14 @@ func FixImgRelPath(docPath string, imageFolder string, doFix bool) ([]string, er
 	var changed bool = false
 	var byteStream bytes.Buffer            // Put the fixed text.
 	imgPathsSlice := make([]string, 0, 20) // result
+	var filePerm fs.FileMode
+	if fileInfo, err := os.Lstat(docPath); err != nil {
+		return nil, fmt.Errorf("docs: open failed %s %w", docPath, err)
+	} else {
+		filePerm = fileInfo.Mode().Perm()
+	}
 
-	if file, err := os.OpenFile(docPath, os.O_RDWR, 0666); err != nil {
+	if file, err := os.OpenFile(docPath, os.O_RDWR, filePerm); err != nil {
 		return nil, fmt.Errorf("docs: open failed %s %w", docPath, err)
 	} else {
 		defer file.Close()
@@ -135,7 +142,7 @@ func FixImgRelPath(docPath string, imageFolder string, doFix bool) ([]string, er
 	// Write result to original path.
 	if changed {
 		if doFix {
-			if file, err := os.OpenFile(docPath, os.O_RDWR|os.O_TRUNC, 0666); err != nil {
+			if file, err := os.OpenFile(docPath, os.O_RDWR|os.O_TRUNC, filePerm); err != nil {
 				return nil, fmt.Errorf("docs: writing open failed %s %w", docPath, err)
 			} else {
 				defer file.Close()
