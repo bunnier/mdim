@@ -18,9 +18,9 @@ import (
 // Scan docs in docFolder to fix image relative path.
 // The first return map's keys are all reference images paths.
 func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[string]interface{}, types.AggregateError) {
-	var errCh chan error = make(chan error)
-	var imgPathCh chan string = make(chan string)
-	var wg sync.WaitGroup = sync.WaitGroup{}
+	errCh := make(chan error)
+	imgPathCh := make(chan string)
+	wg := sync.WaitGroup{}
 
 	// Error will pass to errCh.
 	_ = filepath.WalkDir(docFolder, func(docPath string, d os.DirEntry, err error) error {
@@ -86,8 +86,8 @@ func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[st
 // Fix the image urls of the doc.
 // The first return is all the image paths slice.
 func fixImgRelPath(docPath string, imgFolder string, doRelPathFix bool) ([]string, error) {
-	var changed bool = false
-	var byteStream bytes.Buffer            // Put the fixed text.
+	changed := false
+	byteStream := bytes.Buffer{}           // Put the fixed text.
 	imgPathsSlice := make([]string, 0, 20) // result
 
 	fileInfo, err := os.Lstat(docPath) // to get perm
