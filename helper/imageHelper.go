@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-// Iterate image folder to delete no reference images.
+// Iterate imageFolder to find & delete no reference images.
 func DelNoRefImags(imageFolder string, referenceMap map[string]interface{}, doDel bool) []error {
 	if images, err := os.ReadDir(imageFolder); err != nil {
 		return []error{fmt.Errorf("images: open folder failed %s %w", imageFolder, err)}

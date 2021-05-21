@@ -7,8 +7,6 @@ import (
 	"os"
 )
 
-var ExitForHelper error = errors.New("stop for helper")
-
 // Deal with cli params.
 func ParseParams(docFolder *string, imgFolder *string, doFix *bool, doDelete *bool) error {
 	var help bool
@@ -22,9 +20,9 @@ func ParseParams(docFolder *string, imgFolder *string, doFix *bool, doDelete *bo
 
 	flag.Parse()
 
-	if help {
+	if help { // Show usage and then exit directly.
 		flag.Usage()
-		return ExitForHelper
+		os.Exit(0)
 	}
 
 	switch {

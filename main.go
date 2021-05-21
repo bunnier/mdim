@@ -16,16 +16,14 @@ func main() {
 
 	// Deal with options.
 	if err := helper.ParseParams(&docFolder, &imgFolder, &doFix, &doDel); err != nil {
-		if err != helper.ExitForHelper {
-			println(err.Error())
-		}
+		println(err.Error())
 		return
 	}
 
 	fmt.Println("Starting to scan markdown document..")
 
-	// The key is all images list.
-	allRefImagesMap, errs := helper.ScanToFixRelpath(docFolder, imgFolder, doFix)
+	// The keys are all image paths.
+	allRefImagesMap, errs := helper.ScanToFixImgRelPath(docFolder, imgFolder, doFix)
 	if errs != nil {
 		helper.PrintAggregateError(errs)
 		return

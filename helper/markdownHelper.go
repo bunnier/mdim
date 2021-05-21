@@ -12,8 +12,8 @@ import (
 	"sync"
 )
 
-// Walk Doc folder to fix image relative path.
-// The first return map's key are all reference images paths
+// Scan docs in docFolder to fix image relative path.
+// The first return map's keys are all reference images paths
 func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[string]interface{}, []error) {
 	var errCh chan error = make(chan error)
 	var imagePathCh chan string = make(chan string)
