@@ -14,7 +14,7 @@ go install
 Usage:
 
 ```bash
-mdic [-dfh] [-i image folder] [-m markdown doc folder] 
+mdic [-h] [-d] [-f] [-i imageFolder] [-m markdownFolder] 
 ```
 
 Options:

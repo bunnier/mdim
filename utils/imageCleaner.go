@@ -8,30 +8,30 @@ import (
 )
 
 // Iterate imageFolder to find & delete no reference images.
-func DelNoRefImags(imageFolder string, referenceMap map[string]interface{}, doDel bool) []error {
-	if images, err := os.ReadDir(imageFolder); err != nil {
-		return []error{fmt.Errorf("images: open folder failed %s %w", imageFolder, err)}
+func DelNoRefImgs(imgFolder string, referenceMap map[string]interface{}, doImgDel bool) AggregateErr {
+	if imgs, err := os.ReadDir(imgFolder); err != nil {
+		return AggregateErr{fmt.Errorf("images: open folder failed %s %w", imgFolder, err)}
 	} else {
 		errCh := make(chan error) // error channel
 		wg := sync.WaitGroup{}
 
-		for _, image := range images {
+		for _, img := range imgs {
 			wg.Add(1)
-			go func(imageName string, wg *sync.WaitGroup, errCh chan error) {
+			go func(imgName string, wg *sync.WaitGroup, errCh chan error) {
 				defer wg.Done()
-				if _, ok := referenceMap[imageName]; !ok {
-					imageFullPath := filepath.Join(imageFolder, imageName)
-					if doDel {
-						if err := os.Remove(imageFullPath); err != nil {
-							errCh <- fmt.Errorf("images: delete file failed %s %w", imageFullPath, err)
+				if _, ok := referenceMap[imgName]; !ok {
+					imgFullPath := filepath.Join(imgFolder, imgName)
+					if doImgDel {
+						if err := os.Remove(imgFullPath); err != nil {
+							errCh <- fmt.Errorf("images: delete file failed %s %w", imgFullPath, err)
 						} else {
-							fmt.Println("images: deleted successfully", imageFullPath)
+							fmt.Println("images: deleted successfully", imgFullPath)
 						}
 					} else {
-						fmt.Println("images: find a no reference image", imageFullPath)
+						fmt.Println("images: find a no reference image", imgFullPath)
 					}
 				}
-			}(image.Name(), &wg, errCh)
+			}(img.Name(), &wg, errCh)
 		}
 
 		// Waiting for all goroutine done to close channel.
@@ -41,7 +41,7 @@ func DelNoRefImags(imageFolder string, referenceMap map[string]interface{}, doDe
 		}(&wg)
 
 		// channel receiver
-		aggregateErr := make([]error, 0, 0) // Expect 0 error, hah~
+		aggregateErr := make(AggregateErr, 0, 0) // Expect 0 error, hah~
 		for {
 			if err, ok := <-errCh; ok {
 				aggregateErr = append(aggregateErr, err)

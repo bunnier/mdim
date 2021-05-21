@@ -2,7 +2,9 @@ package utils
 
 import "fmt"
 
-func PrintAggregateError(errs []error) {
+type AggregateError []error
+
+func PrintAggregateError(errs AggregateError) {
 	for _, err := range errs {
 		fmt.Println(err)
 	}
