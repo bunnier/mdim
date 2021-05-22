@@ -10,8 +10,7 @@ import (
 )
 
 // Iterate imageFolder to find & delete no reference images.
-func DelNoRefImgs(absImgFolder string, allRefImgsAbsPathSet types.Set, doImgDel bool) types.AggregateError {
-
+func DeleteNoRefImgs(absImgFolder string, allRefImgsAbsPathSet types.Set, doImgDel bool) types.AggregateError {
 	errCh := make(chan error) // error channel
 	wg := sync.WaitGroup{}
 

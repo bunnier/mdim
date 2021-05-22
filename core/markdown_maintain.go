@@ -18,7 +18,7 @@ import (
 
 // Scan docs in docFolder to fix image relative path.
 // The first return map's keys are all reference images paths.
-func ScanMarkdownFiles(absDocFolder string, absImgFolder string, doFix bool) (types.Set, types.AggregateError) {
+func MaintainMarkdownFiles(absDocFolder string, absImgFolder string, doFix bool) (types.Set, types.AggregateError) {
 	errCh := make(chan error)
 	imgPathCh := make(chan types.Set)
 	wg := sync.WaitGroup{}
@@ -34,7 +34,7 @@ func ScanMarkdownFiles(absDocFolder string, absImgFolder string, doFix bool) (ty
 		go func() {
 			defer wg.Done()
 
-			if refImgsAbsPathSet, err := scanMarkdownFile(docPath, absImgFolder, doFix); err != nil {
+			if refImgsAbsPathSet, err := maintainMarkdownFile(docPath, absImgFolder, doFix); err != nil {
 				errCh <- err // Pass error to main goroutine.
 			} else {
 				imgPathCh <- refImgsAbsPathSet // Pass found image paths to main goroutine.
@@ -87,7 +87,7 @@ var imgTagRegexp *regexp.Regexp = regexp.MustCompile(`!\[([^]]*)]\(((?:(http[s]?
 
 // Fix the image urls of the doc.
 // The first return is all the reference image paths set.
-func scanMarkdownFile(docPath string, absImgFolder string, doRelPathFix bool) (types.Set, error) {
+func maintainMarkdownFile(docPath string, absImgFolder string, doRelPathFix bool) (types.Set, error) {
 	byteStream := bytes.Buffer{}          // Put the fixed text.
 	refImgsAbsPathSet := types.NewSet(10) // Store all the reference image paths.
 
@@ -127,12 +127,12 @@ func scanMarkdownFile(docPath string, absImgFolder string, doRelPathFix bool) (t
 				return imgTag
 			}
 
+			// fix rel path
 			if fixedPath, absFixedPath, err := getFixImgRelPath(docPath, imgPath, absImgFolder); err == nil {
-				// save abs path
 				refImgsAbsPathSet.Add(absFixedPath)
 				return fmt.Sprintf("![%s](%s)", imgTitle, fixedPath)
 			} else {
-				// log then continuess
+				// Print log then continues.
 				fmt.Printf("\ndocs: failed to fix this image path\n%s\n%s\n%s\n\n", docPath, imgPath, err.Error())
 				return imgTag
 			}
@@ -151,7 +151,7 @@ func scanMarkdownFile(docPath string, absImgFolder string, doRelPathFix bool) (t
 	}
 
 	// Write fixed content to original path.
-	if err = writeFixedContent(docPath, byteStream.String(), filePerm); err != nil {
+	if err = overriteExistFile(docPath, byteStream.String(), filePerm); err != nil {
 		return nil, err
 	}
 
@@ -162,7 +162,8 @@ func scanMarkdownFile(docPath string, absImgFolder string, doRelPathFix bool) (t
 // Group1=imgFolder Name, Group2=relative path in imgFolder
 var imgPathRegexp *regexp.Regexp = regexp.MustCompile(`^(?:(?:\.{1,2}[/\\])+)([^/\\\n]+)?[/\\](.+)$`)
 
-// Try to fix image relative path to imgFolder
+// Try to fix image relative path to imgFolder.
+// If imgPath is correct, return itself.
 // return (relative path, abs path, error)
 func getFixImgRelPath(docPath string, imgPath string, absImgFolder string) (string, string, error) {
 	imgFolderName := filepath.Base(absImgFolder)
@@ -189,7 +190,7 @@ func getFixImgRelPath(docPath string, imgPath string, absImgFolder string) (stri
 	return fixImgRelPath, fixImgAbsPath, nil
 }
 
-func writeFixedContent(docPath string, content string, filePerm fs.FileMode) error {
+func overriteExistFile(docPath string, content string, filePerm fs.FileMode) error {
 	file, err := os.OpenFile(docPath, os.O_RDWR|os.O_TRUNC, filePerm)
 	if err != nil {
 		return fmt.Errorf("docs: writing open failed %s %w", docPath, err)
