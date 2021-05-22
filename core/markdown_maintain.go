@@ -18,7 +18,7 @@ import (
 
 // Scan docs in docFolder to fix image relative path.
 // The first return map's keys are all reference images paths.
-func MaintainMarkdownFiles(absDocFolder string, absImgFolder string, doFix bool) (types.Set, types.AggregateError) {
+func MaintainImageTags(absDocFolder string, absImgFolder string, doFix bool) (types.Set, types.AggregateError) {
 	errCh := make(chan error)
 	imgPathCh := make(chan types.Set)
 	wg := sync.WaitGroup{}
@@ -34,7 +34,7 @@ func MaintainMarkdownFiles(absDocFolder string, absImgFolder string, doFix bool)
 		go func() {
 			defer wg.Done()
 
-			if refImgsAbsPathSet, err := maintainMarkdownFile(docPath, absImgFolder, doFix); err != nil {
+			if refImgsAbsPathSet, err := maintainImageTagsForSingleFile(docPath, absImgFolder, doFix); err != nil {
 				errCh <- err // Pass error to main goroutine.
 			} else {
 				imgPathCh <- refImgsAbsPathSet // Pass found image paths to main goroutine.
@@ -87,7 +87,7 @@ var imgTagRegexp *regexp.Regexp = regexp.MustCompile(`!\[([^]]*)]\(((?:(http[s]?
 
 // Fix the image urls of the doc.
 // The first return is all the reference image paths set.
-func maintainMarkdownFile(docPath string, absImgFolder string, doRelPathFix bool) (types.Set, error) {
+func maintainImageTagsForSingleFile(docPath string, absImgFolder string, doRelPathFix bool) (types.Set, error) {
 	byteStream := bytes.Buffer{}          // Put the fixed text.
 	refImgsAbsPathSet := types.NewSet(10) // Store all the reference image paths.
 
