@@ -17,7 +17,7 @@ import (
 
 // Scan docs in docFolder to fix image relative path.
 // The first return map's keys are all reference images paths.
-func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[string]interface{}, types.AggregateError) {
+func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (types.Set, types.AggregateError) {
 	errCh := make(chan error)
 	imgPathCh := make(chan string)
 	wg := sync.WaitGroup{}
@@ -45,7 +45,7 @@ func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[st
 		return nil
 	})
 
-	allRefImgsMap := make(map[string]interface{}, 100)
+	allRefImgsSet := types.NewSet(100)
 	aggErr := types.NewAggregateError()
 
 	// Waiting for all goroutine done to close channel.
@@ -67,7 +67,7 @@ func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[st
 			}
 		case imgPath, chOpen = <-imgPathCh:
 			if chOpen {
-				allRefImgsMap[imgPath] = nil
+				allRefImgsSet.Add(imgPath)
 			}
 		}
 
@@ -77,7 +77,7 @@ func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (map[st
 	}
 
 	if aggErr.Len() == 0 {
-		return allRefImgsMap, nil
+		return allRefImgsSet, nil
 	} else {
 		return nil, aggErr
 	}

@@ -11,7 +11,7 @@ import (
 )
 
 // Iterate imageFolder to find & delete no reference images.
-func DelNoRefImgs(imgFolder string, allRefImgsMap map[string]interface{}, doImgDel bool) types.AggregateError {
+func DelNoRefImgs(imgFolder string, allRefImgsSet types.Set, doImgDel bool) types.AggregateError {
 	var imgs []fs.DirEntry
 	var err error
 	if imgs, err = os.ReadDir(imgFolder); err != nil {
@@ -24,8 +24,8 @@ func DelNoRefImgs(imgFolder string, allRefImgsMap map[string]interface{}, doImgD
 
 	for _, img := range imgs {
 		imgName := img.Name()
-		_, ok := allRefImgsMap[imgName]
-		if ok {
+
+		if allRefImgsSet.Exist(imgName) {
 			continue
 		}
 
