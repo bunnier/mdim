@@ -144,6 +144,9 @@ func scanMarkdownFile(docPath string, absImgFolder string, doRelPathFix bool) (t
 	file.Close()
 
 	if !changed || !doRelPathFix {
+		if changed {
+			fmt.Println("docs: find error image path in path, no fix now.", docPath)
+		}
 		return refImgsAbsPathSet, nil
 	}
 

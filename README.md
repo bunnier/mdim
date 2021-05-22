@@ -20,8 +20,8 @@ mdim [-h] [-d] [-f] [-i imageFolder] [-m markdownFolder]
 
 Options:
 
-- `-d` Set the option to delete no reference images.
-- `-f` Set the option to fix image relative paths of markdown documents.
+- `-d` Set the option to delete no reference images, otherwise print the paths only.
+- `-f` Set the option to fix image relative paths of markdown documents, otherwise print the paths only.
 - `-h` Show this help.
 - `-i string` Must be not empty. The folder images save in.
 - `-m string` Must be not empty. The folder markdown documents save in.

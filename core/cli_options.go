@@ -22,8 +22,8 @@ func GetOptions() *CliOptions {
 
 	flag.Usage = usage
 	flag.BoolVar(&help, "h", false, "Show this help.")
-	flag.BoolVar(&CliParams.DoRelPathFix, "f", false, "Set the option to fix image relative paths of markdown documents.")
-	flag.BoolVar(&CliParams.DoImgDel, "d", false, "Set the option to delete no reference images.")
+	flag.BoolVar(&CliParams.DoRelPathFix, "f", false, "Set the option to fix image relative paths of markdown documents, otherwise print the paths only.")
+	flag.BoolVar(&CliParams.DoImgDel, "d", false, "Set the option to delete no reference images, otherwise print the paths only.")
 	flag.StringVar(&CliParams.AbsDocFolder, "m", "", "Must be not empty. The folder markdown documents save in")
 	flag.StringVar(&CliParams.AbsImgFolder, "i", "", "Must be not empty. The folder images save in")
 
