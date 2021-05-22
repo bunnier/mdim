@@ -12,6 +12,12 @@ type Set interface {
 
 	// If the data do not exist in the Set return false, otherwise remove it then return true.
 	Remove(interface{}) bool
+
+	// Return len of the set.
+	Len() int
+
+	// Return if the set empty.
+	IsEmpty() bool
 }
 
 func NewSet(cap int) Set {
@@ -53,4 +59,14 @@ func (set *mapHashSet) Remove(data interface{}) bool {
 	}
 	delete(set.innerMap, data)
 	return true
+}
+
+// Return len of the set.
+func (set *mapHashSet) Len() int {
+	return len(set.innerMap)
+}
+
+// Return if the set empty.
+func (set *mapHashSet) IsEmpty() bool {
+	return len(set.innerMap) == 0
 }
