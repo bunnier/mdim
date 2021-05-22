@@ -123,7 +123,7 @@ func scanMarkdownFile(docPath string, imgFolder string, doRelPathFix bool) ([]st
 		}
 
 		// Do fix.
-		if fixedLine, err := fixSingleLineImgRelPat(line, docPath, imgFolder); err != nil {
+		if fixedLine, err := fixSingleLineImgRelPath(line, docPath, imgFolder); err != nil {
 			return nil, fmt.Errorf("docs: image relative path fixing error %s %w", docPath, err)
 		} else {
 			byteStream.WriteString(fixedLine)
@@ -161,7 +161,7 @@ func findImgInLine(line string) types.Set {
 	return refImgsSet
 }
 
-func fixSingleLineImgRelPat(line string, docPath string, imgFolder string) (string, error) {
+func fixSingleLineImgRelPath(line string, docPath string, imgFolder string) (string, error) {
 	// Do fix.
 	var replaceErr error
 	fixedLine := imgTagRegexp.ReplaceAllStringFunc(line, func(imgTag string) string {
