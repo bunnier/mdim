@@ -13,7 +13,7 @@ func main() {
 	fmt.Println("Starting to scan markdown document..")
 
 	// Scan docs in docFolder to fix image relative path.
-	allRefImgsMap, aggErr := core.ScanToFixImgRelPath(cliOptions.DocFolder, cliOptions.ImgFolder, cliOptions.DoRelPathFix)
+	allRefImgsSet, aggErr := core.ScanToFixImgRelPath(cliOptions.DocFolder, cliOptions.ImgFolder, cliOptions.DoRelPathFix)
 	if aggErr != nil {
 		aggErr.PrintAggregateError()
 		return
@@ -22,7 +22,7 @@ func main() {
 	fmt.Println("Starting to scan images..")
 
 	// Delete no reference images.
-	if errs := core.DelNoRefImgs(cliOptions.ImgFolder, allRefImgsMap, cliOptions.DoImgDel); errs != nil {
+	if errs := core.DelNoRefImgs(cliOptions.ImgFolder, allRefImgsSet, cliOptions.DoImgDel); errs != nil {
 		errs.PrintAggregateError()
 		return
 	}
