@@ -122,12 +122,12 @@ func fixImgRelPath(docPath string, imgFolder string, doRelPathFix bool) ([]strin
 			imgTitle := matchParts[1]                            // tag title
 			imgFileName := matchParts[2]                         // filename
 
+			docFolder := filepath.Dir(docPath) // current doc folder
 			imgAbsPath := filepath.Join(imgFolder, imgFileName)
-			docParentPath := filepath.Dir(docPath)
 
-			relPath, err := filepath.Rel(docParentPath, imgAbsPath)
+			relPath, err := filepath.Rel(docFolder, imgAbsPath)
 			if err != nil {
-				replaceErr = fmt.Errorf("docs: calcute relative failed, from %s to %s %w", docParentPath, imgAbsPath, err)
+				replaceErr = fmt.Errorf("docs: calcute relative failed, from %s to %s %w", docFolder, imgAbsPath, err)
 				return matchLine
 			}
 			imgPathsSlice = append(imgPathsSlice, imgFileName) // Add path to result.
