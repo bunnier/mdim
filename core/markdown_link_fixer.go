@@ -3,6 +3,7 @@ package core
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -17,13 +18,13 @@ import (
 
 // Scan docs in docFolder to fix image relative path.
 // The first return map's keys are all reference images paths.
-func ScanMarkdownFiles(docFolder string, imgFolder string, doFix bool) (types.Set, types.AggregateError) {
+func ScanMarkdownFiles(absDocFolder string, absImgFolder string, doFix bool) (types.Set, types.AggregateError) {
 	errCh := make(chan error)
-	imgPathCh := make(chan string)
+	imgPathCh := make(chan types.Set)
 	wg := sync.WaitGroup{}
 
 	// Error will pass to errCh.
-	filepath.WalkDir(docFolder, func(docPath string, d os.DirEntry, err error) error {
+	filepath.WalkDir(absDocFolder, func(docPath string, d os.DirEntry, err error) error {
 		// Just deal with markdown docs.
 		if d.IsDir() || !strings.HasSuffix(docPath, ".md") {
 			return nil
@@ -33,19 +34,17 @@ func ScanMarkdownFiles(docFolder string, imgFolder string, doFix bool) (types.Se
 		go func() {
 			defer wg.Done()
 
-			if imgPathSlice, err := scanMarkdownFile(docPath, imgFolder, doFix); err != nil {
+			if refImgsAbsPathSet, err := scanMarkdownFile(docPath, absImgFolder, doFix); err != nil {
 				errCh <- err // Pass error to main goroutine.
 			} else {
-				for _, v := range imgPathSlice {
-					imgPathCh <- v // Pass found image paths to main goroutine.
-				}
+				imgPathCh <- refImgsAbsPathSet // Pass found image paths to main goroutine.
 			}
 		}()
 
 		return nil
 	})
 
-	allRefImgsSet := types.NewSet(100)
+	allRefImgsAbsPathSet := types.NewSet(100)
 	aggErr := types.NewAggregateError()
 
 	// Waiting for all goroutine done to close channel.
@@ -57,7 +56,7 @@ func ScanMarkdownFiles(docFolder string, imgFolder string, doFix bool) (types.Se
 
 	chOpen := true
 	var err error
-	var imgPath string
+	var imgSet types.Set
 	for {
 		// Receive error & found image path.
 		select {
@@ -65,9 +64,9 @@ func ScanMarkdownFiles(docFolder string, imgFolder string, doFix bool) (types.Se
 			if chOpen {
 				aggErr.AddError(err)
 			}
-		case imgPath, chOpen = <-imgPathCh:
+		case imgSet, chOpen = <-imgPathCh:
 			if chOpen {
-				allRefImgsSet.Put(imgPath)
+				allRefImgsAbsPathSet.Merge(imgSet)
 			}
 		}
 
@@ -77,20 +76,22 @@ func ScanMarkdownFiles(docFolder string, imgFolder string, doFix bool) (types.Se
 	}
 
 	if aggErr.Len() == 0 {
-		return allRefImgsSet, nil
+		return allRefImgsAbsPathSet, nil
 	} else {
 		return nil, aggErr
 	}
 }
 
-// Fix the image urls of the doc.
-// The first return is all the image paths slice.
-func scanMarkdownFile(docPath string, imgFolder string, doRelPathFix bool) ([]string, error) {
-	changed := false
-	byteStream := bytes.Buffer{}           // Put the fixed text.
-	imgPathsSlice := make([]string, 0, 20) // result
+// Group1=img title, Group2=img path, Group3=protocol, Group4=img filename
+var imgTagRegexp *regexp.Regexp = regexp.MustCompile(`!\[([^]]*)]\(((?:(http[s]?://|ftp://)|[\\\./]*)(?:(?:[^\\/\n]+[\\/])*)([^\\/\n]+\.[a-zA-Z]{1,5}))\)`)
 
-	fileInfo, err := os.Lstat(docPath) // to get perm
+// Fix the image urls of the doc.
+// The first return is all the reference image paths set.
+func scanMarkdownFile(docPath string, absImgFolder string, doRelPathFix bool) (types.Set, error) {
+	byteStream := bytes.Buffer{}          // Put the fixed text.
+	refImgsAbsPathSet := types.NewSet(10) // Store all the reference image paths.
+
+	fileInfo, err := os.Lstat(docPath) // get perm
 	if err != nil {
 		return nil, fmt.Errorf("docs: open failed %s %w", docPath, err)
 	}
@@ -103,6 +104,7 @@ func scanMarkdownFile(docPath string, imgFolder string, doRelPathFix bool) ([]st
 	defer file.Close()
 
 	reader := bufio.NewReader(file)
+	changed := false
 	for {
 		line, err := reader.ReadString('\n')
 		if err != nil {
@@ -113,29 +115,36 @@ func scanMarkdownFile(docPath string, imgFolder string, doRelPathFix bool) ([]st
 			return nil, fmt.Errorf("docs: reading failed %s %w", docPath, err)
 		}
 
-		// Search image tags.
-		refPathSet := findImgInLine(line)
+		// line workflow
+		fixedLine := imgTagRegexp.ReplaceAllStringFunc(line, func(imgTag string) string {
+			matchParts := imgTagRegexp.FindStringSubmatch(imgTag) // matchLine is whole image tag
+			imgTitle := matchParts[1]                             // tag title
+			imgPath := matchParts[2]                              // img path
+			imgProtocol := matchParts[3]                          // protocol
 
-		// image not found OR do not fix
-		if refPathSet.IsEmpty() || !doRelPathFix {
-			byteStream.WriteString(line)
-			continue
-		}
-
-		// Do fix.
-		if fixedLine, err := fixSingleLineImgRelPath(line, docPath, imgFolder); err != nil {
-			return nil, fmt.Errorf("docs: image relative path fixing error %s %w", docPath, err)
-		} else {
-			byteStream.WriteString(fixedLine)
-			if fixedLine != line {
-				changed = changed || true
+			if imgProtocol != "" { // do not handle remote image
+				refImgsAbsPathSet.Add(imgPath)
+				return imgTag
 			}
-		}
+
+			if fixedPath, absFixedPath, err := getFixImgRelPath(docPath, imgPath, absImgFolder); err == nil {
+				// save abs path
+				refImgsAbsPathSet.Add(absFixedPath)
+				return fmt.Sprintf("![%s](%s)", imgTitle, fixedPath)
+			} else {
+				// log then continuess
+				fmt.Printf("\ndocs: failed to fix this image path\n%s\n%s\n%s\n\n", docPath, imgPath, err.Error())
+				return imgTag
+			}
+		})
+
+		byteStream.WriteString(fixedLine)
+		changed = changed || fixedLine != line
 	}
 	file.Close()
 
 	if !changed || !doRelPathFix {
-		return imgPathsSlice, nil
+		return refImgsAbsPathSet, nil
 	}
 
 	// Write fixed content to original path.
@@ -144,55 +153,37 @@ func scanMarkdownFile(docPath string, imgFolder string, doRelPathFix bool) ([]st
 	}
 
 	fmt.Println("docs: fixed successfully", docPath)
-	return imgPathsSlice, nil
+	return refImgsAbsPathSet, nil
 }
 
-// Group1=img title, Group2=img path, Group3=protocol, Group4=img filename
-var imgTagRegexp *regexp.Regexp = regexp.MustCompile(`!\[([^]]*)]\(((?:(http[s]?://|ftp://)|[\\\./]*)(?:(?:[^\\/\n]+[\\/])*)([^\\/\n]+\.[a-zA-Z]{1,5}))\)`)
+// Group1=imgFolder Name, Group2=relative path in imgFolder
+var imgPathRegexp *regexp.Regexp = regexp.MustCompile(`^(?:(?:\.{1,2}[/\\])+)([^/\\\n]+)?[/\\](.+)$`)
 
-// Scan single line to find imgpath.
-func findImgInLine(line string) types.Set {
-	refImgsSet := types.NewSet(2)
+// Try to fix image relative path to imgFolder
+// return (relative path, abs path, error)
+func getFixImgRelPath(docPath string, imgPath string, absImgFolder string) (string, string, error) {
+	imgFolderName := filepath.Base(absImgFolder)
+	matches := imgPathRegexp.FindAllStringSubmatch(imgPath, -1)
 
-	for _, matchParts := range imgTagRegexp.FindAllStringSubmatch(line, -1) {
-		refImgsSet.Add(matchParts[2]) // 2 is img path.
+	// can not handle this path
+	if len(matches) != 1 || len(matches[0]) != 3 || matches[0][1] != imgFolderName {
+		return "", "", errors.New("can not handle this path")
+	}
+	relPathInImgFolder := matches[0][2]
+
+	fixImgAbsPath := filepath.Join(absImgFolder, relPathInImgFolder)
+	_, err := os.Stat(fixImgAbsPath)
+	if err != nil { // can not handle
+		return "", "", err
 	}
 
-	return refImgsSet
-}
-
-func fixSingleLineImgRelPath(line string, docPath string, imgFolder string) (string, error) {
-	// Do fix.
-	var replaceErr error
-	fixedLine := imgTagRegexp.ReplaceAllStringFunc(line, func(imgTag string) string {
-		matchParts := imgTagRegexp.FindStringSubmatch(imgTag) // matchLine is whole image tag
-		imgTitle := matchParts[1]                             // tag title
-		imgProtocol := matchParts[3]                          // protocol
-		imgFileName := matchParts[4]                          // filename
-
-		// Do not deal with remote imgs here.
-		if imgProtocol != "" {
-			return imgTag
-		}
-
-		docFolder := filepath.Dir(docPath) // folder of current doc
-		imgAbsPath := filepath.Join(imgFolder, imgFileName)
-
-		relPath, err := filepath.Rel(docFolder, imgAbsPath)
-		if err != nil {
-			replaceErr = fmt.Errorf("docs: calcute relative failed, from %s to %s %w", docFolder, imgAbsPath, err)
-			return imgTag
-		}
-
-		newImgTag := fmt.Sprintf("![%s](%s)", imgTitle, relPath)
-		return newImgTag
-	})
-
-	if replaceErr != nil {
-		return "", replaceErr
+	currentDocFolder := filepath.Dir(docPath)
+	fixImgRelPath, err := filepath.Rel(currentDocFolder, fixImgAbsPath)
+	if err != nil {
+		return "", "", err
 	}
 
-	return fixedLine, nil
+	return fixImgRelPath, fixImgAbsPath, nil
 }
 
 func writeFixedContent(docPath string, content string, filePerm fs.FileMode) error {

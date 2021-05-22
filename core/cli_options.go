@@ -4,12 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 // Command-line options.
 type CliOptions struct {
-	DocFolder    string
-	ImgFolder    string
+	AbsDocFolder string
+	AbsImgFolder string
 	DoRelPathFix bool
 	DoImgDel     bool
 }
@@ -23,15 +24,37 @@ func GetOptions() *CliOptions {
 	flag.BoolVar(&help, "h", false, "Show this help.")
 	flag.BoolVar(&CliParams.DoRelPathFix, "f", false, "Set the option to fix image relative paths of markdown documents.")
 	flag.BoolVar(&CliParams.DoImgDel, "d", false, "Set the option to delete no reference images.")
-	flag.StringVar(&CliParams.DocFolder, "m", "", "Must be not empty. The folder markdown documents save in")
-	flag.StringVar(&CliParams.ImgFolder, "i", "", "Must be not empty. The folder images save in")
+	flag.StringVar(&CliParams.AbsDocFolder, "m", "", "Must be not empty. The folder markdown documents save in")
+	flag.StringVar(&CliParams.AbsImgFolder, "i", "", "Must be not empty. The folder images save in")
 
 	flag.Parse()
 
 	// Show usage and then exit directly.
-	if help || CliParams.ImgFolder == "" || CliParams.DocFolder == "" {
+	if help {
 		flag.Usage()
 		os.Exit(0)
+	}
+
+	if CliParams.AbsImgFolder == "" || CliParams.AbsDocFolder == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	var err error
+	if !filepath.IsAbs(CliParams.AbsImgFolder) {
+		CliParams.AbsImgFolder, err = filepath.Abs(CliParams.AbsImgFolder)
+		if err != nil {
+			fmt.Printf("Cannot get the abs path of img folder\n%s\n%s", CliParams.AbsImgFolder, err.Error())
+			os.Exit(2)
+		}
+	}
+
+	if !filepath.IsAbs(CliParams.AbsDocFolder) {
+		CliParams.AbsDocFolder, err = filepath.Abs(CliParams.AbsDocFolder)
+		if err != nil {
+			fmt.Printf("cannot get the abs path of doc folder\n%s\n%s", CliParams.AbsDocFolder, err.Error())
+			os.Exit(3)
+		}
 	}
 
 	return CliParams

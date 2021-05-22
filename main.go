@@ -10,22 +10,28 @@ func main() {
 	// Deal with options.
 	cliOptions := core.GetOptions()
 
+	fmt.Println("======================================")
 	fmt.Println("Starting to scan markdown document..")
+	fmt.Println("======================================")
 
 	// Scan docs in docFolder to fix image relative path.
-	allRefImgsSet, aggErr := core.ScanMarkdownFiles(cliOptions.DocFolder, cliOptions.ImgFolder, cliOptions.DoRelPathFix)
+	allRefImgsAbsPathSet, aggErr := core.ScanMarkdownFiles(cliOptions.AbsDocFolder, cliOptions.AbsImgFolder, cliOptions.DoRelPathFix)
 	if aggErr != nil {
 		aggErr.PrintAggregateError()
 		return
 	}
 
+	fmt.Println("======================================")
 	fmt.Println("Starting to scan images..")
+	fmt.Println("======================================")
 
 	// Delete no reference images.
-	if errs := core.DelNoRefImgs(cliOptions.ImgFolder, allRefImgsSet, cliOptions.DoImgDel); errs != nil {
+	if errs := core.DelNoRefImgs(cliOptions.AbsImgFolder, allRefImgsAbsPathSet, cliOptions.DoImgDel); errs != nil {
 		errs.PrintAggregateError()
 		return
 	}
 
+	fmt.Println("======================================")
 	fmt.Println("All done.")
+	fmt.Println("======================================")
 }

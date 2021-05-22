@@ -18,6 +18,12 @@ type Set interface {
 
 	// Return if the set empty.
 	IsEmpty() bool
+
+	// Merge anotherSet to current.
+	Merge(anotherSet Set)
+
+	// Turn all elements into a slice
+	ToSlice() []interface{}
 }
 
 func NewSet(cap int) Set {
@@ -69,4 +75,20 @@ func (set *mapHashSet) Len() int {
 // Return if the set empty.
 func (set *mapHashSet) IsEmpty() bool {
 	return len(set.innerMap) == 0
+}
+
+// Turn all elements into a slice
+func (set *mapHashSet) ToSlice() []interface{} {
+	slice := make([]interface{}, 0, set.Len())
+	for k, _ := range set.innerMap {
+		slice = append(slice, k)
+	}
+	return slice
+}
+
+// Merge anotherSet to current.
+func (set *mapHashSet) Merge(anotherSet Set) {
+	for _, v := range anotherSet.ToSlice() {
+		set.Put(v)
+	}
 }

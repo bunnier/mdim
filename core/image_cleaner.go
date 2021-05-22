@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"sync"
@@ -11,41 +10,38 @@ import (
 )
 
 // Iterate imageFolder to find & delete no reference images.
-func DelNoRefImgs(imgFolder string, allRefImgsSet types.Set, doImgDel bool) types.AggregateError {
-	var imgs []fs.DirEntry
-	var err error
-	if imgs, err = os.ReadDir(imgFolder); err != nil {
-		err := fmt.Errorf("images: open folder failed %s %w", imgFolder, err)
-		return types.NewAggregateError().AddError(err)
-	}
+func DelNoRefImgs(absImgFolder string, allRefImgsAbsPathSet types.Set, doImgDel bool) types.AggregateError {
 
 	errCh := make(chan error) // error channel
 	wg := sync.WaitGroup{}
 
-	for _, img := range imgs {
-		imgName := img.Name()
+	filepath.WalkDir(absImgFolder, func(imgPath string, d os.DirEntry, err error) error {
+		if d.IsDir() {
+			return nil
+		}
 
-		if allRefImgsSet.Exist(imgName) {
-			continue
+		if allRefImgsAbsPathSet.Exist(imgPath) {
+			return nil
 		}
 
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 
-			imgFullPath := filepath.Join(imgFolder, imgName)
 			if doImgDel {
-				if err := os.Remove(imgFullPath); err != nil {
+				if err := os.Remove(imgPath); err != nil {
 					// Pass error to main goroutine.
-					errCh <- fmt.Errorf("images: delete file failed %s %w", imgFullPath, err)
+					errCh <- fmt.Errorf("images: delete no referemce image failed %s %w", imgPath, err)
 				} else {
-					fmt.Println("images: deleted successfully", imgFullPath)
+					fmt.Println("images: delete a no reference image successfully", imgPath)
 				}
 			} else {
-				fmt.Println("images: find a no reference image", imgFullPath)
+				fmt.Println("images: find a no reference image", imgPath)
 			}
 		}()
-	}
+
+		return nil
+	})
 
 	// Waiting for all goroutine done to close channel.
 	go func() {
