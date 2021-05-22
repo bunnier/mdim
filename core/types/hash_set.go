@@ -7,6 +7,9 @@ type Set interface {
 	// If the data exist in the Set return false, otherwise add to the Set then return true.
 	Add(interface{}) bool
 
+	// Put data to the Set.
+	Put(interface{})
+
 	// If the data do not exist in the Set return false, otherwise remove it then return true.
 	Remove(interface{}) bool
 }
@@ -29,12 +32,17 @@ func (set *mapHashSet) Exist(data interface{}) bool {
 	return exist
 }
 
+// Put data to the Set.
+func (set *mapHashSet) Put(data interface{}) {
+	set.innerMap[data] = true
+}
+
 // If the data exist in the Set return false, otherwise add to the Set then return true.
 func (set *mapHashSet) Add(data interface{}) bool {
 	if set.Exist(data) {
 		return false
 	}
-	set.innerMap[data] = true
+	set.Put(data)
 	return true
 }
 

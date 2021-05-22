@@ -67,7 +67,7 @@ func ScanToFixImgRelPath(docFolder string, imgFolder string, doFix bool) (types.
 			}
 		case imgPath, chOpen = <-imgPathCh:
 			if chOpen {
-				allRefImgsSet.Add(imgPath)
+				allRefImgsSet.Put(imgPath)
 			}
 		}
 
