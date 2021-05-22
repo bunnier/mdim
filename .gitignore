@@ -19,3 +19,5 @@ main.exe
 # vendor/
 
 .vscode
+
+.DS_Store
