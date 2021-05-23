@@ -19,8 +19,9 @@ func main() {
 	allRefImgsAbsPathSet, markdownHandleResults := core.MaintainImageTags(cliOptions.AbsDocFolder, cliOptions.AbsImgFolder, cliOptions.DoRelPathFix)
 	hasInteruptErr := false
 	for _, handleResult := range markdownHandleResults {
-		if handleResult.HasErrImgRelPath {
+		if handleResult.HasErrImgRelPath || handleResult.RelPathCannotFixedErr != nil {
 			fmt.Println(handleResult.ToString())
+			fmt.Println()
 		}
 		if handleResult.Err != nil {
 			hasInteruptErr = true
@@ -38,6 +39,7 @@ func main() {
 	// Delete no reference images.
 	for _, handleResult := range core.DeleteNoRefImgs(cliOptions.AbsImgFolder, allRefImgsAbsPathSet, cliOptions.DoImgDel) {
 		fmt.Println(handleResult.ToString())
+		fmt.Println()
 	}
 
 	fmt.Println("==========================================")
