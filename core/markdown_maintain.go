@@ -17,13 +17,13 @@ import (
 )
 
 // Scan docs in docFolder to fix image relative path.
-// The first return map's keys are all reference images paths.
+// The first return is all the reference image paths Set.
 func MaintainImageTags(absDocFolder string, absImgFolder string, doFix bool) (types.Set, []types.MarkdownHandleResult) {
 	handleResultCh := make(chan types.MarkdownHandleResult)
 	imgPathCh := make(chan types.Set)
 	wg := sync.WaitGroup{}
 
-	count := 0
+	count := 0 // The count of handling files.
 	filepath.WalkDir(absDocFolder, func(docPath string, d os.DirEntry, err error) error {
 		// Just deal with markdown docs.
 		if d.IsDir() || !strings.HasSuffix(docPath, ".md") {
@@ -82,7 +82,7 @@ func MaintainImageTags(absDocFolder string, absImgFolder string, doFix bool) (ty
 var imgTagRegexp *regexp.Regexp = regexp.MustCompile(`!\[([^]]*)]\(((?:(http[s]?://|ftp://)|[\\\./]*)(?:(?:[^\\/\n]+[\\/])*)([^\\/\n]+\.[a-zA-Z]{1,5}))\)`)
 
 // Fix the image urls of the doc.
-// The first return is all the reference image paths set.
+// The first return is all the reference image paths Set.
 func maintainImageTagsForSingleFile(docPath string, absImgFolder string, doRelPathFix bool) (types.Set, types.MarkdownHandleResult) {
 	byteStream := bytes.Buffer{}          // Put the fixed text.
 	refImgsAbsPathSet := types.NewSet(10) // Store all the reference image paths.
