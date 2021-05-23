@@ -1,7 +1,10 @@
 # VScode
 .vscode
-.VSCodeCounter
 *.code-workspace
+.VSCodeCounter
+
+# idea
+.idea
 
 # macOS
 .DS_Store
