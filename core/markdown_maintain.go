@@ -18,51 +18,51 @@ import (
 
 // Scan docs in docFolder to fix image relative path.
 // The first return map's keys are all reference images paths.
-func MaintainImageTags(absDocFolder string, absImgFolder string, doFix bool) (types.Set, types.AggregateError) {
-	errCh := make(chan error)
+func MaintainImageTags(absDocFolder string, absImgFolder string, doFix bool) (types.Set, []types.MarkdownHandleResult) {
+	handleResultCh := make(chan types.MarkdownHandleResult)
 	imgPathCh := make(chan types.Set)
 	wg := sync.WaitGroup{}
 
-	// Error will pass to errCh.
+	count := 0
 	filepath.WalkDir(absDocFolder, func(docPath string, d os.DirEntry, err error) error {
 		// Just deal with markdown docs.
 		if d.IsDir() || !strings.HasSuffix(docPath, ".md") {
 			return nil
 		}
 
+		count++
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 
-			if refImgsAbsPathSet, err := maintainImageTagsForSingleFile(docPath, absImgFolder, doFix); err != nil {
-				errCh <- err // Pass error to main goroutine.
-			} else {
-				imgPathCh <- refImgsAbsPathSet // Pass found image paths to main goroutine.
-			}
+			refImgsAbsPathSet, handleResult := maintainImageTagsForSingleFile(docPath, absImgFolder, doFix)
+			// Pass results to main goroutine.
+			handleResultCh <- handleResult
+			imgPathCh <- refImgsAbsPathSet
 		}()
 
 		return nil
 	})
 
-	allRefImgsAbsPathSet := types.NewSet(100)
-	aggErr := types.NewAggregateError()
-
 	// Waiting for all goroutine done to close channel.
 	go func() {
 		wg.Wait()
-		close(errCh)
+		close(handleResultCh)
 		close(imgPathCh)
 	}()
 
+	handleResults := make([]types.MarkdownHandleResult, 0, count)
+	allRefImgsAbsPathSet := types.NewSet(count * 3)
+
 	chOpen := true
-	var err error
+	var handleResult types.MarkdownHandleResult
 	var imgSet types.Set
 	for {
 		// Receive error & found image path.
 		select {
-		case err, chOpen = <-errCh:
+		case handleResult, chOpen = <-handleResultCh:
 			if chOpen {
-				aggErr.AddError(err)
+				handleResults = append(handleResults, handleResult)
 			}
 		case imgSet, chOpen = <-imgPathCh:
 			if chOpen {
@@ -75,11 +75,7 @@ func MaintainImageTags(absDocFolder string, absImgFolder string, doFix bool) (ty
 		}
 	}
 
-	if aggErr.Len() == 0 {
-		return allRefImgsAbsPathSet, nil
-	} else {
-		return nil, aggErr
-	}
+	return allRefImgsAbsPathSet, handleResults
 }
 
 // Group1=img title, Group2=img path, Group3=protocol, Group4=img filename
@@ -87,24 +83,26 @@ var imgTagRegexp *regexp.Regexp = regexp.MustCompile(`!\[([^]]*)]\(((?:(http[s]?
 
 // Fix the image urls of the doc.
 // The first return is all the reference image paths set.
-func maintainImageTagsForSingleFile(docPath string, absImgFolder string, doRelPathFix bool) (types.Set, error) {
+func maintainImageTagsForSingleFile(docPath string, absImgFolder string, doRelPathFix bool) (types.Set, types.MarkdownHandleResult) {
 	byteStream := bytes.Buffer{}          // Put the fixed text.
 	refImgsAbsPathSet := types.NewSet(10) // Store all the reference image paths.
+	handleResult := types.MarkdownHandleResult{DocPath: docPath}
 
 	fileInfo, err := os.Lstat(docPath) // get perm
 	if err != nil {
-		return nil, fmt.Errorf("docs: open failed %s %w", docPath, err)
+		handleResult.Err = fmt.Errorf("Lstat file failed. %w", err)
+		return nil, handleResult
 	}
 	filePerm := fileInfo.Mode().Perm() // file perm
 
 	file, err := os.OpenFile(docPath, os.O_RDWR, filePerm)
 	if err != nil {
-		return nil, fmt.Errorf("docs: open failed %s %w", docPath, err)
+		handleResult.Err = fmt.Errorf("Open file failed. %w", err)
+		return nil, handleResult
 	}
 	defer file.Close()
 
 	reader := bufio.NewReader(file)
-	changed := false
 	for {
 		line, err := reader.ReadString('\n')
 		if err != nil {
@@ -112,7 +110,8 @@ func maintainImageTagsForSingleFile(docPath string, absImgFolder string, doRelPa
 				byteStream.WriteString(line)
 				break
 			}
-			return nil, fmt.Errorf("docs: reading failed %s %w", docPath, err)
+			handleResult.Err = fmt.Errorf("Reading failed. %w", err)
+			return nil, handleResult
 		}
 
 		// line workflow
@@ -132,31 +131,31 @@ func maintainImageTagsForSingleFile(docPath string, absImgFolder string, doRelPa
 				refImgsAbsPathSet.Add(absFixedPath)
 				return fmt.Sprintf("![%s](%s)", imgTitle, fixedPath)
 			} else {
-				// Print log then continues.
-				fmt.Printf("\ndocs: failed to fix this image path\n%s\n%s\n%s\n\n", docPath, imgPath, err.Error())
+				if handleResult.RelPathCannotFixedErr == nil {
+					handleResult.RelPathCannotFixedErr = make([]error, 0, 1)
+				}
+				handleResult.RelPathCannotFixedErr = append(handleResult.RelPathCannotFixedErr, err)
 				return imgTag
 			}
 		})
 
 		byteStream.WriteString(fixedLine)
-		changed = changed || fixedLine != line
+		handleResult.HasErrImgRelPath = handleResult.HasErrImgRelPath || fixedLine != line
 	}
 	file.Close()
 
-	if !changed || !doRelPathFix {
-		if changed {
-			fmt.Println("docs: find error image path in path, no fix now.", docPath)
-		}
-		return refImgsAbsPathSet, nil
+	if !handleResult.HasErrImgRelPath || !doRelPathFix {
+		return refImgsAbsPathSet, handleResult
 	}
 
 	// Write fixed content to original path.
 	if err = overriteExistFile(docPath, byteStream.String(), filePerm); err != nil {
-		return nil, err
+		handleResult.Err = fmt.Errorf("Writing failed. %w", err)
+		return refImgsAbsPathSet, handleResult
 	}
 
-	fmt.Println("docs: fixed successfully", docPath)
-	return refImgsAbsPathSet, nil
+	handleResult.FixedErrImgRelPath = true
+	return refImgsAbsPathSet, handleResult
 }
 
 // Group1=imgFolder Name, Group2=relative path in imgFolder

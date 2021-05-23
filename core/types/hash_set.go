@@ -80,7 +80,7 @@ func (set *mapHashSet) IsEmpty() bool {
 // Turn all elements into a slice
 func (set *mapHashSet) ToSlice() []interface{} {
 	slice := make([]interface{}, 0, set.Len())
-	for k, _ := range set.innerMap {
+	for k := range set.innerMap {
 		slice = append(slice, k)
 	}
 	return slice
