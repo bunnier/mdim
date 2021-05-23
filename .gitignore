@@ -19,5 +19,6 @@ main.exe
 # vendor/
 
 .vscode
+*.code-workspace
 
 .DS_Store
