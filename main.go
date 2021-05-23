@@ -26,9 +26,15 @@ func main() {
 	fmt.Println("======================================")
 
 	// Delete no reference images.
-	if errs := core.DeleteNoRefImgs(cliOptions.AbsImgFolder, allRefImgsAbsPathSet, cliOptions.DoImgDel); errs != nil {
-		errs.PrintAggregateError()
-		return
+	for _, handleResult := range core.DeleteNoRefImgs(cliOptions.AbsImgFolder, allRefImgsAbsPathSet, cliOptions.DoImgDel) {
+		switch {
+		case handleResult.Err != nil:
+			fmt.Printf("[image handle]:find a no reference image, but fail to delete.\n----> %s\n", handleResult.ImagePath)
+		case handleResult.Deleted:
+			fmt.Printf("[image handle]:delete a no reference image successfully.\n----> %s\n", handleResult.ImagePath)
+		case !handleResult.Deleted:
+			fmt.Printf("[image handle]:find a no reference image, do not delete this time.\n----> %s\n", handleResult.ImagePath)
+		}
 	}
 
 	fmt.Println("======================================")

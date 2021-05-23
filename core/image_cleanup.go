@@ -10,9 +10,10 @@ import (
 )
 
 // Iterate imageFolder to find & delete no reference images.
-func DeleteNoRefImgs(absImgFolder string, allRefImgsAbsPathSet types.Set, doImgDel bool) types.AggregateError {
-	errCh := make(chan error) // error channel
+func DeleteNoRefImgs(absImgFolder string, allRefImgsAbsPathSet types.Set, doImgDel bool) []types.ImageHandleResult {
 	wg := sync.WaitGroup{}
+	count := 0
+	handleResultCh := make(chan types.ImageHandleResult)
 
 	filepath.WalkDir(absImgFolder, func(imgPath string, d os.DirEntry, err error) error {
 		if d.IsDir() {
@@ -24,19 +25,20 @@ func DeleteNoRefImgs(absImgFolder string, allRefImgsAbsPathSet types.Set, doImgD
 		}
 
 		wg.Add(1)
+		count++
 		go func() {
 			defer wg.Done()
-
+			handleResult := types.ImageHandleResult{ImagePath: imgPath}
 			if doImgDel {
 				if err := os.Remove(imgPath); err != nil {
 					// Pass error to main goroutine.
-					errCh <- fmt.Errorf("images: delete no referemce image failed %s %w", imgPath, err)
+					handleResult.Err = fmt.Errorf("images: delete no referemce image failed %s %w", imgPath, err)
+					handleResult.Deleted = false
 				} else {
-					fmt.Println("images: delete a no reference image successfully", imgPath)
+					handleResult.Deleted = true
 				}
-			} else {
-				fmt.Println("images: find a no reference image", imgPath)
 			}
+			handleResultCh <- handleResult
 		}()
 
 		return nil
@@ -45,22 +47,18 @@ func DeleteNoRefImgs(absImgFolder string, allRefImgsAbsPathSet types.Set, doImgD
 	// Waiting for all goroutine done to close channel.
 	go func() {
 		wg.Wait()
-		close(errCh)
+		close(handleResultCh)
 	}()
 
-	// error receiver
-	aggErr := types.NewAggregateError()
+	// handle result receiver
+	handleResultSlice := make([]types.ImageHandleResult, 0, count)
 	for {
-		err, chOpen := <-errCh
+		handleResult, chOpen := <-handleResultCh
 		if !chOpen {
 			break
 		}
-		aggErr.AddError(err)
+		handleResultSlice = append(handleResultSlice, handleResult)
 	}
 
-	if aggErr.Len() == 0 {
-		return nil
-	} else {
-		return aggErr
-	}
+	return handleResultSlice
 }
