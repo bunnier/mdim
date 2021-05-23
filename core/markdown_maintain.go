@@ -16,6 +16,12 @@ import (
 	"mdim/core/types"
 )
 
+// Input=Markdown line, Group1=img title, Group2=img path, Group3=protocol, Group4=img filename
+var imgTagRegexp *regexp.Regexp = regexp.MustCompile(`!\[([^]]*)]\(((?:(http[s]?://|ftp://)|[\\\./]*)(?:(?:[^\\/\n]+[\\/])*)([^\\/\n]+\.[a-zA-Z]{1,5}))\)`)
+
+// Input=Relative path, Group1=First named folder name, Group2=relative path in imgFolder
+var imgPathRegexp *regexp.Regexp = regexp.MustCompile(`^(?:(?:\.{1,2}[/\\])+)([^/\\\n]+)?[/\\](.+)$`)
+
 // Scan docs in docFolder to fix image relative path.
 // The first return is all the reference image paths Set.
 func MaintainImageTags(absDocFolder string, absImgFolder string, doFix bool) (types.Set, []types.MarkdownHandleResult) {
@@ -77,9 +83,6 @@ func MaintainImageTags(absDocFolder string, absImgFolder string, doFix bool) (ty
 
 	return allRefImgsAbsPathSet, handleResults
 }
-
-// Group1=img title, Group2=img path, Group3=protocol, Group4=img filename
-var imgTagRegexp *regexp.Regexp = regexp.MustCompile(`!\[([^]]*)]\(((?:(http[s]?://|ftp://)|[\\\./]*)(?:(?:[^\\/\n]+[\\/])*)([^\\/\n]+\.[a-zA-Z]{1,5}))\)`)
 
 // Fix the image urls of the doc.
 // The first return is all the reference image paths Set.
@@ -158,17 +161,21 @@ func maintainImageTagsForSingleFile(docPath string, absImgFolder string, doRelPa
 	return refImgsAbsPathSet, handleResult
 }
 
-// Group1=imgFolder Name, Group2=relative path in imgFolder
-var imgPathRegexp *regexp.Regexp = regexp.MustCompile(`^(?:(?:\.{1,2}[/\\])+)([^/\\\n]+)?[/\\](.+)$`)
-
-// Try to fix image relative path to imgFolder.
-// If imgPath is correct, return itself.
-// return (relative path, abs path, error)
+// Try to get a correct image relative path.
+//
+// Handling logic:
+//   1. If the imgPath is not a relative path, return error.
+//   2. When the relative path is existed, return it self.
+//   3. If the first named foloder of imgPath do not equals the foloder name of absImgFolder, return error.
+//   4. Trying to oint the path part of imgPath followed first named foloder to the absImgFolder, than get a new path.
+//   5. When the path from step4 is existed, it will be return, otherwise will return error.
+//
+// Return value = (relative path, abs path, error)
 func getFixImgRelPath(docPath string, imgPath string, absImgFolder string) (string, string, error) {
 	imgFolderName := filepath.Base(absImgFolder)
 	matches := imgPathRegexp.FindAllStringSubmatch(imgPath, -1)
 
-	// can not handle this path
+	// Can only handle the path that related to absImgFolder.
 	if len(matches) != 1 || len(matches[0]) != 3 || matches[0][1] != imgFolderName {
 		return "", "", errors.New("can not handle this path")
 	}
@@ -192,12 +199,12 @@ func getFixImgRelPath(docPath string, imgPath string, absImgFolder string) (stri
 func overriteExistFile(docPath string, content string, filePerm fs.FileMode) error {
 	file, err := os.OpenFile(docPath, os.O_RDWR|os.O_TRUNC, filePerm)
 	if err != nil {
-		return fmt.Errorf("docs: writing open failed %s %w", docPath, err)
+		return errors.New("Writing open failed.")
 	}
 	defer file.Close()
 
 	if _, err := file.WriteString(content); err != nil {
-		return fmt.Errorf("docs: writing failed %s %w", docPath, err)
+		return errors.New("Writing failed.")
 	}
 	return nil
 }
