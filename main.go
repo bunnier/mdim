@@ -17,18 +17,18 @@ func main() {
 
 	// Scan docs in docFolder to maintain image tags.
 	allRefImgsAbsPathSet, markdownHandleResults := core.MaintainImageTags(cliOptions.AbsDocFolder, cliOptions.AbsImgFolder, cliOptions.DoRelPathFix)
-	hasInteruptErr := false
+	hasInterruptErr := false
 	for _, handleResult := range markdownHandleResults {
 		if handleResult.HasErrImgRelPath || handleResult.RelPathCannotFixedErr != nil {
 			fmt.Println(handleResult.ToString())
 			fmt.Println()
 		}
 		if handleResult.Err != nil {
-			hasInteruptErr = true
+			hasInterruptErr = true
 		}
 	}
 
-	if hasInteruptErr {
+	if hasInterruptErr {
 		os.Exit(10)
 	}
 

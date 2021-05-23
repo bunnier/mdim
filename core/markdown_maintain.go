@@ -22,7 +22,7 @@ var imgTagRegexp *regexp.Regexp = regexp.MustCompile(`!\[([^]]*)]\(((?:(http[s]?
 // Input=Relative path, Group1=First named folder name, Group2=relative path in imgFolder
 var imgPathRegexp *regexp.Regexp = regexp.MustCompile(`^(?:(?:\.{1,2}[/\\])+)([^/\\\n]+)?[/\\](.+)$`)
 
-// Scan docs in docFolder to fix image relative path.
+// MaintainImageTags Scan docs in docFolder to fix image relative path.
 // The first return is all the reference image paths Set.
 func MaintainImageTags(absDocFolder string, absImgFolder string, doFix bool) (types.Set, []types.MarkdownHandleResult) {
 	handleResultCh := make(chan types.MarkdownHandleResult)
@@ -152,7 +152,7 @@ func maintainImageTagsForSingleFile(docPath string, absImgFolder string, doRelPa
 	}
 
 	// Write fixed content to original path.
-	if err = overriteExistFile(docPath, byteStream.String(), filePerm); err != nil {
+	if err = overrideExistFile(docPath, byteStream.String(), filePerm); err != nil {
 		handleResult.Err = fmt.Errorf("Writing failed. %w", err)
 		return refImgsAbsPathSet, handleResult
 	}
@@ -166,8 +166,8 @@ func maintainImageTagsForSingleFile(docPath string, absImgFolder string, doRelPa
 // Handling logic:
 //   1. If the imgPath is not a relative path, return error.
 //   2. When the relative path is existed, return it self.
-//   3. If the first named foloder of imgPath do not equals the foloder name of absImgFolder, return error.
-//   4. Trying to oint the path part of imgPath followed first named foloder to the absImgFolder, than get a new path.
+//   3. If the first named folder of imgPath do not equals the folder name of absImgFolder, return error.
+//   4. Trying to point the path part of imgPath followed first named folder to the absImgFolder, than get a new path.
 //   5. When the path from step4 is existed, it will be return, otherwise will return error.
 //
 // Return value = (relative path, abs path, error)
@@ -196,7 +196,7 @@ func getFixImgRelPath(docPath string, imgPath string, absImgFolder string) (stri
 	return fixImgRelPath, fixImgAbsPath, nil
 }
 
-func overriteExistFile(docPath string, content string, filePerm fs.FileMode) error {
+func overrideExistFile(docPath string, content string, filePerm fs.FileMode) error {
 	file, err := os.OpenFile(docPath, os.O_RDWR|os.O_TRUNC, filePerm)
 	if err != nil {
 		return errors.New("Writing open failed.")
