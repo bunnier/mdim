@@ -1,3 +1,11 @@
+# VScode
+.vscode
+.VSCodeCounter
+*.code-workspace
+
+# macOS
+.DS_Store
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -5,8 +13,8 @@
 *.so
 *.dylib
 mdim
-main
 mdim.exe
+main
 main.exe
 
 # Test binary, built with `go test -c`
@@ -15,10 +23,3 @@ main.exe
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
-
-.vscode
-*.code-workspace
-
-.DS_Store
