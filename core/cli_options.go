@@ -44,7 +44,7 @@ func GetOptions() *CliOptions {
 	if !filepath.IsAbs(CliParams.AbsImgFolder) {
 		CliParams.AbsImgFolder, err = filepath.Abs(CliParams.AbsImgFolder)
 		if err != nil {
-			fmt.Printf("Cannot get the abs path of img folder\n%s\n%s", CliParams.AbsImgFolder, err.Error())
+			fmt.Printf("Cannot get the abs path of imageFolder\n%s\n%s", CliParams.AbsImgFolder, err.Error())
 			os.Exit(2)
 		}
 	}
@@ -52,7 +52,7 @@ func GetOptions() *CliOptions {
 	if !filepath.IsAbs(CliParams.AbsDocFolder) {
 		CliParams.AbsDocFolder, err = filepath.Abs(CliParams.AbsDocFolder)
 		if err != nil {
-			fmt.Printf("cannot get the abs path of doc folder\n%s\n%s", CliParams.AbsDocFolder, err.Error())
+			fmt.Printf("Cannot get the absolutely path of markdownFolder\n%s\n%s", CliParams.AbsDocFolder, err.Error())
 			os.Exit(3)
 		}
 	}

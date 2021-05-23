@@ -30,7 +30,7 @@ func DeleteNoRefImgs(absImgFolder string, allRefImgsAbsPathSet types.Set, doImgD
 			handleResult := types.ImageHandleResult{ImagePath: imgPath}
 			if doImgDel {
 				if err := os.Remove(imgPath); err != nil {
-					handleResult.Err = fmt.Errorf("images: delete no referemce image failed %s %w", imgPath, err)
+					handleResult.Err = fmt.Errorf("Delete no referemce image failed. %w", err)
 					handleResult.Deleted = false
 				} else {
 					handleResult.Deleted = true

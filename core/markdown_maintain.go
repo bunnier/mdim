@@ -177,7 +177,7 @@ func getFixImgRelPath(docPath string, imgPath string, absImgFolder string) (stri
 
 	// Can only handle the path that related to absImgFolder.
 	if len(matches) != 1 || len(matches[0]) != 3 || matches[0][1] != imgFolderName {
-		return "", "", errors.New("can not handle this path")
+		return "", "", errors.New("Can not handle this path.")
 	}
 	relPathInImgFolder := matches[0][2]
 
