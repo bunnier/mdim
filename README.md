@@ -3,7 +3,19 @@
 [![Go](https://github.com/bunnier/mdim/actions/workflows/go.yml/badge.svg)](https://github.com/bunnier/mdim/actions/workflows/go.yml)
 [![CodeQL](https://github.com/bunnier/mdim/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/bunnier/mdim/actions/workflows/codeql-analysis.yml)
 
-The tool will help to maintain the image relative paths of markdown files and cleanup no reference images.
+## Function
+
+Now:
+
+- Fixed wrong image relative path after you move document.
+- Clean up no reference image.
+
+Next:
+
+- Convert the web images in your docs to local images.
+- Read the paths from enviroment variable.
+
+## Usage
 
 Install:
 
