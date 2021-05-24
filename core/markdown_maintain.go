@@ -23,6 +23,7 @@ var (
 	// Input=Relative path, Group1=First named folder name, Group2=relative path in imgFolder
 	imgPathRegexp *regexp.Regexp = regexp.MustCompile(`^(?:(?:\.{1,2}[/\\])+)([^/\\\n]+)?[/\\](.+)$`)
 
+	// For slash replace.
 	regexForSlash = regexp.MustCompile(`\\`)
 )
 
