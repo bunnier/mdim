@@ -16,11 +16,15 @@ import (
 	"mdim/core/types"
 )
 
-// Input=Markdown line, Group1=img title, Group2=img path, Group3=protocol, Group4=img filename
-var imgTagRegexp *regexp.Regexp = regexp.MustCompile(`!\[([^]]*)]\(((?:(http[s]?://|ftp://)|[\\\./]*)(?:(?:[^\\/\n]+[\\/])*)([^\\/\n]+\.[a-zA-Z]{1,5}))\)`)
+var (
+	// Input=Markdown line, Group1=img title, Group2=img path, Group3=protocol, Group4=img filename
+	imgTagRegexp *regexp.Regexp = regexp.MustCompile(`!\[([^]]*)]\(((?:(http[s]?://|ftp://)|[\\\./]*)(?:(?:[^\\/\n]+[\\/])*)([^\\/\n]+\.[a-zA-Z]{1,5}))\)`)
 
-// Input=Relative path, Group1=First named folder name, Group2=relative path in imgFolder
-var imgPathRegexp *regexp.Regexp = regexp.MustCompile(`^(?:(?:\.{1,2}[/\\])+)([^/\\\n]+)?[/\\](.+)$`)
+	// Input=Relative path, Group1=First named folder name, Group2=relative path in imgFolder
+	imgPathRegexp *regexp.Regexp = regexp.MustCompile(`^(?:(?:\.{1,2}[/\\])+)([^/\\\n]+)?[/\\](.+)$`)
+
+	regexForSlash = regexp.MustCompile(`\\`)
+)
 
 // MaintainImageTags Scan docs in docFolder to fix image relative path.
 // The first return is all the reference image paths Set.
@@ -192,6 +196,9 @@ func getFixImgRelPath(docPath string, imgPath string, absImgFolder string) (stri
 	if err != nil {
 		return "", "", err
 	}
+
+	// Unify to forward slash.
+	fixImgRelPath = regexForSlash.ReplaceAllString(fixImgRelPath, "/")
 
 	return fixImgRelPath, fixImgAbsPath, nil
 }
