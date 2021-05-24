@@ -98,14 +98,14 @@ func maintainImageTagsForSingleFile(docPath string, absImgFolder string, doRelPa
 
 	fileInfo, err := os.Lstat(docPath) // get perm
 	if err != nil {
-		handleResult.Err = fmt.Errorf("lstat file failed\n %w", err)
+		handleResult.Err = fmt.Errorf("lstat file failed\n%w", err)
 		return nil, handleResult
 	}
 	filePerm := fileInfo.Mode().Perm() // file perm
 
 	file, err := os.OpenFile(docPath, os.O_RDWR, filePerm)
 	if err != nil {
-		handleResult.Err = fmt.Errorf("open file failed\n %w", err)
+		handleResult.Err = fmt.Errorf("open file failed\n%w", err)
 		return nil, handleResult
 	}
 	defer file.Close()
@@ -118,7 +118,7 @@ func maintainImageTagsForSingleFile(docPath string, absImgFolder string, doRelPa
 				byteStream.WriteString(line)
 				break
 			}
-			handleResult.Err = fmt.Errorf("reading failed\n %w", err)
+			handleResult.Err = fmt.Errorf("reading failed\n%w", err)
 			return nil, handleResult
 		}
 
@@ -158,7 +158,7 @@ func maintainImageTagsForSingleFile(docPath string, absImgFolder string, doRelPa
 
 	// Write fixed content to original path.
 	if err = overrideExistFile(docPath, byteStream.String(), filePerm); err != nil {
-		handleResult.Err = fmt.Errorf("writing failed\n %w", err)
+		handleResult.Err = fmt.Errorf("writing failed\n%w", err)
 		return refImgsAbsPathSet, handleResult
 	}
 
