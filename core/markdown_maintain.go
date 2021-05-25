@@ -22,6 +22,9 @@ var (
 
 	// Input=Relative path, Group1=First named folder name, Group2=relative path in imgFolder
 	imgPathRegexp *regexp.Regexp = regexp.MustCompile(`^(?:(?:\.{1,2}[/\\])+)([^/\\\n]+)?[/\\](.+)$`)
+
+	// For slash replace.
+	regexForSlash = regexp.MustCompile(`\\`)
 )
 
 // MaintainImageTags Scan docs in docFolder to fix image relative path.
@@ -95,14 +98,14 @@ func maintainImageTagsForSingleFile(docPath string, absImgFolder string, doRelPa
 
 	fileInfo, err := os.Lstat(docPath) // get perm
 	if err != nil {
-		handleResult.Err = fmt.Errorf("Lstat file failed. %w", err)
+		handleResult.Err = fmt.Errorf("lstat file failed\n%w", err)
 		return nil, handleResult
 	}
 	filePerm := fileInfo.Mode().Perm() // file perm
 
 	file, err := os.OpenFile(docPath, os.O_RDWR, filePerm)
 	if err != nil {
-		handleResult.Err = fmt.Errorf("Open file failed. %w", err)
+		handleResult.Err = fmt.Errorf("open file failed\n%w", err)
 		return nil, handleResult
 	}
 	defer file.Close()
@@ -115,7 +118,7 @@ func maintainImageTagsForSingleFile(docPath string, absImgFolder string, doRelPa
 				byteStream.WriteString(line)
 				break
 			}
-			handleResult.Err = fmt.Errorf("Reading failed. %w", err)
+			handleResult.Err = fmt.Errorf("reading failed\n%w", err)
 			return nil, handleResult
 		}
 
@@ -155,7 +158,7 @@ func maintainImageTagsForSingleFile(docPath string, absImgFolder string, doRelPa
 
 	// Write fixed content to original path.
 	if err = overrideExistFile(docPath, byteStream.String(), filePerm); err != nil {
-		handleResult.Err = fmt.Errorf("Writing failed. %w", err)
+		handleResult.Err = fmt.Errorf("writing failed\n%w", err)
 		return refImgsAbsPathSet, handleResult
 	}
 
@@ -179,7 +182,7 @@ func getFixImgRelPath(docPath string, imgPath string, absImgFolder string) (stri
 
 	// Can only handle the path that related to absImgFolder.
 	if len(matches) != 1 || len(matches[0]) != 3 || matches[0][1] != imgFolderName {
-		return "", "", errors.New("Can not handle this path.")
+		return "", "", errors.New("can not handle this path")
 	}
 	relPathInImgFolder := matches[0][2]
 
@@ -195,18 +198,21 @@ func getFixImgRelPath(docPath string, imgPath string, absImgFolder string) (stri
 		return "", "", err
 	}
 
+	// Unify to forward slash.
+	fixImgRelPath = regexForSlash.ReplaceAllString(fixImgRelPath, "/")
+
 	return fixImgRelPath, fixImgAbsPath, nil
 }
 
 func overrideExistFile(docPath string, content string, filePerm fs.FileMode) error {
 	file, err := os.OpenFile(docPath, os.O_RDWR|os.O_TRUNC, filePerm)
 	if err != nil {
-		return errors.New("Writing open failed.")
+		return errors.New("writing open failed")
 	}
 	defer file.Close()
 
 	if _, err := file.WriteString(content); err != nil {
-		return errors.New("Writing failed.")
+		return errors.New("writing failed")
 	}
 	return nil
 }
