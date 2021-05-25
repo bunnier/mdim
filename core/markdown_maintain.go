@@ -1,12 +1,8 @@
 package core
 
 import (
-	"bufio"
-	"bytes"
 	"errors"
 	"fmt"
-	"io"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -92,72 +88,50 @@ func MaintainImageTags(absDocFolder string, absImgFolder string, doFix bool) (ty
 // Fix the image urls of the doc.
 // The first return is all the reference image paths Set.
 func maintainImageTagsForSingleFile(docPath string, absImgFolder string, doRelPathFix bool) (types.Set, types.MarkdownHandleResult) {
-	byteStream := bytes.Buffer{}          // Put the fixed text.
 	refImgsAbsPathSet := types.NewSet(10) // Store all the reference image paths.
 	handleResult := types.MarkdownHandleResult{DocPath: docPath}
 
-	fileInfo, err := os.Lstat(docPath) // get perm
+	// get doc file content
+	contentBytes, err := os.ReadFile(docPath)
 	if err != nil {
-		handleResult.Err = fmt.Errorf("lstat file failed\n%w", err)
+		handleResult.Err = fmt.Errorf("reading failed\n%w", err)
 		return nil, handleResult
 	}
-	filePerm := fileInfo.Mode().Perm() // file perm
+	content := string(contentBytes)
 
-	file, err := os.OpenFile(docPath, os.O_RDWR, filePerm)
-	if err != nil {
-		handleResult.Err = fmt.Errorf("open file failed\n%w", err)
-		return nil, handleResult
-	}
-	defer file.Close()
+	// line workflow
+	fixedContent := imgTagRegexp.ReplaceAllStringFunc(content, func(imgTag string) string {
+		matchParts := imgTagRegexp.FindStringSubmatch(imgTag) // matchLine is whole image tag
+		imgTitle := matchParts[1]                             // tag title
+		imgPath := matchParts[2]                              // img path
+		imgProtocol := matchParts[3]                          // protocol
 
-	reader := bufio.NewReader(file)
-	for {
-		line, err := reader.ReadString('\n')
-		if err != nil {
-			if err == io.EOF {
-				byteStream.WriteString(line)
-				break
-			}
-			handleResult.Err = fmt.Errorf("reading failed\n%w", err)
-			return nil, handleResult
+		if imgProtocol != "" { // do not handle remote image
+			refImgsAbsPathSet.Add(imgPath)
+			return imgTag
 		}
 
-		// line workflow
-		fixedLine := imgTagRegexp.ReplaceAllStringFunc(line, func(imgTag string) string {
-			matchParts := imgTagRegexp.FindStringSubmatch(imgTag) // matchLine is whole image tag
-			imgTitle := matchParts[1]                             // tag title
-			imgPath := matchParts[2]                              // img path
-			imgProtocol := matchParts[3]                          // protocol
-
-			if imgProtocol != "" { // do not handle remote image
-				refImgsAbsPathSet.Add(imgPath)
-				return imgTag
+		// fix rel path
+		if fixedPath, absFixedPath, err := getFixImgRelPath(docPath, imgPath, absImgFolder); err == nil {
+			refImgsAbsPathSet.Add(absFixedPath)
+			return fmt.Sprintf("![%s](%s)", imgTitle, fixedPath)
+		} else {
+			if handleResult.RelPathCannotFixedErr == nil {
+				handleResult.RelPathCannotFixedErr = make([]error, 0, 1)
 			}
+			handleResult.RelPathCannotFixedErr = append(handleResult.RelPathCannotFixedErr, err)
+			return imgTag
+		}
+	})
 
-			// fix rel path
-			if fixedPath, absFixedPath, err := getFixImgRelPath(docPath, imgPath, absImgFolder); err == nil {
-				refImgsAbsPathSet.Add(absFixedPath)
-				return fmt.Sprintf("![%s](%s)", imgTitle, fixedPath)
-			} else {
-				if handleResult.RelPathCannotFixedErr == nil {
-					handleResult.RelPathCannotFixedErr = make([]error, 0, 1)
-				}
-				handleResult.RelPathCannotFixedErr = append(handleResult.RelPathCannotFixedErr, err)
-				return imgTag
-			}
-		})
-
-		byteStream.WriteString(fixedLine)
-		handleResult.HasErrImgRelPath = handleResult.HasErrImgRelPath || fixedLine != line
-	}
-	file.Close()
+	handleResult.HasErrImgRelPath = fixedContent != content
 
 	if !handleResult.HasErrImgRelPath || !doRelPathFix {
 		return refImgsAbsPathSet, handleResult
 	}
 
 	// Write fixed content to original path.
-	if err = overrideExistFile(docPath, byteStream.String(), filePerm); err != nil {
+	if err = overrideExistFile(docPath, fixedContent); err != nil {
 		handleResult.Err = fmt.Errorf("writing failed\n%w", err)
 		return refImgsAbsPathSet, handleResult
 	}
@@ -204,7 +178,13 @@ func getFixImgRelPath(docPath string, imgPath string, absImgFolder string) (stri
 	return fixImgRelPath, fixImgAbsPath, nil
 }
 
-func overrideExistFile(docPath string, content string, filePerm fs.FileMode) error {
+func overrideExistFile(docPath string, content string) error {
+	fileInfo, err := os.Lstat(docPath) // get perm
+	if err != nil {
+		return fmt.Errorf("lstat file failed\n%w", err)
+	}
+	filePerm := fileInfo.Mode().Perm() // file perm
+
 	file, err := os.OpenFile(docPath, os.O_RDWR|os.O_TRUNC, filePerm)
 	if err != nil {
 		return errors.New("writing open failed")
