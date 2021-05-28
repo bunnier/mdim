@@ -177,11 +177,17 @@ func convertRemoteImageToLocal(docPath string, imgPath string, absImgFolder stri
 
 	imgSuffix := matches[0][1]
 
-	resp, err := http.Get(imgPath)
+	fmt.Println("Begin to download web img:", imgPath)
+	httpClient := http.Client{
+		Timeout: 60 * time.Second,
+	}
+	resp, err := httpClient.Get(imgPath)
+	fmt.Println("Img downloaded:", imgPath)
 
 	if err != nil {
 		return "", "", err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		return "", "", fmt.Errorf("status code=%s, url=%s", resp.Status, imgPath)
@@ -192,7 +198,7 @@ func convertRemoteImageToLocal(docPath string, imgPath string, absImgFolder stri
 		return "", "", err
 	}
 
-	filename := time.Now().Format("2006-01-2-15-04-05") + imgSuffix
+	filename := time.Now().Format("2006-01-2-15-04-05.000") + imgSuffix
 	absImgPath := filepath.Join(absImgFolder, filename)
 	if err := os.WriteFile(absImgPath, imgBytes, 666); err != nil {
 		return "", "", err
