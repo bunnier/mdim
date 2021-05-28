@@ -8,7 +8,7 @@
 Now:
 
 - Fixed wrong image relative path after you move document.
-- Download the web images in your docs to local folder.
+- Download the web images into your docs to local folder.
 - Clean up no reference image.
 
 Next:
