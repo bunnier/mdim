@@ -10,7 +10,6 @@ The tool helps to maintain the images in the markdown files.
 - Fix wrong image relative paths after moved document.
 - Download the web images in docs into local folder.
 - Clean up no reference image.
-- Read the paths in cli-options from enviroment variable.
 
 ## Usage
 
