@@ -5,6 +5,8 @@
 
 ## Function
 
+The tool helps to maintain the images in the markdown files.
+
 - Fix wrong image relative paths after moved document.
 - Download the web images in docs into local folder.
 - Clean up no reference image.
@@ -24,8 +26,6 @@ Usage:
 ```bash
 Usage: mdim [-h] [-d] [-w] [-i imageFolder] [-m markdownFolder] 
 ```
-
-Description: The tool will help to maintain the images in markdown files.
 
 Options:
 

@@ -81,7 +81,7 @@ func GetOptions() *CliOptions {
 func usage() {
 	fmt.Fprintf(os.Stderr, `mdim - Markdown Images Maintainer
 
-Description: The tool will help to maintain the images in markdown files.
+Description: The tool helps to maintain the images in the markdown files.
 
 Github: https://github.com/bunnier/mdim
 
