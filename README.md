@@ -8,11 +8,11 @@
 Now:
 
 - Fixed wrong image relative path after you move document.
+- Download the web images in your docs to local folder.
 - Clean up no reference image.
 
 Next:
 
-- Convert the web images in your docs to local images.
 - Read the paths from enviroment variable.
 
 ## Usage
