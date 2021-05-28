@@ -9,10 +9,11 @@ import (
 
 // CliOptions Command-line options.
 type CliOptions struct {
-	AbsDocFolder string
-	AbsImgFolder string
-	DoRelPathFix bool
-	DoImgDel     bool
+	AbsDocFolder     string
+	AbsImgFolder     string
+	DoSave           bool
+	DoImgDel         bool
+	DoWebImgDownload bool
 }
 
 // GetOptions Deal with cli params.
@@ -22,8 +23,9 @@ func GetOptions() *CliOptions {
 
 	flag.Usage = usage
 	flag.BoolVar(&help, "h", false, "Show this help.")
-	flag.BoolVar(&CliParams.DoRelPathFix, "f", false, "Set the option to fix image relative paths of markdown documents, otherwise print the paths only.")
+	flag.BoolVar(&CliParams.DoSave, "s", false, "Set the option to save markdown document changes, otherwise print the paths only.")
 	flag.BoolVar(&CliParams.DoImgDel, "d", false, "Set the option to delete no reference images, otherwise print the paths only.")
+	flag.BoolVar(&CliParams.DoWebImgDownload, "w", false, "Set the option to download the web images to img folder, otherwise ignore others. This option often combine the -s option.")
 	flag.StringVar(&CliParams.AbsDocFolder, "m", "", "Must be not empty. The folder markdown documents save in")
 	flag.StringVar(&CliParams.AbsImgFolder, "i", "", "Must be not empty. The folder images save in")
 

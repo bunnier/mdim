@@ -8,9 +8,11 @@ import (
 type MarkdownHandleResult struct {
 	DocPath string
 
-	RelPathCannotFixedErr []error
-	HasErrImgRelPath      bool
-	FixedErrImgRelPath    bool
+	RelPathCannotFixedErr   []error
+	HasChangeDuringMaintain bool
+	SavedMaintainResult     bool
+
+	WebImgDownloadErr []error
 
 	Err error
 }
@@ -20,12 +22,12 @@ func (handleResult MarkdownHandleResult) ToString() string {
 	switch {
 	case handleResult.Err != nil:
 		resultSb.WriteString(fmt.Sprintf("[markdown handle]:Occur an error when maintain doc.\n----> %s\n----> %s", handleResult.DocPath, handleResult.Err.Error()))
-	case !handleResult.HasErrImgRelPath:
+	case !handleResult.HasChangeDuringMaintain:
 		resultSb.WriteString(fmt.Sprintf("[markdown handle]:Correct doc.\n----> %s", handleResult.DocPath))
-	case !handleResult.FixedErrImgRelPath:
-		resultSb.WriteString(fmt.Sprintf("[markdown handle]:Find relative path error in doc, do not fix this time.\n----> %s", handleResult.DocPath))
-	case handleResult.FixedErrImgRelPath:
-		resultSb.WriteString(fmt.Sprintf("[markdown handle]:Find relative path error in doc, fix successfully.\n----> %s", handleResult.DocPath))
+	case !handleResult.SavedMaintainResult:
+		resultSb.WriteString(fmt.Sprintf("[markdown handle]:Find relative path error or web image in a doc, do not change document this time.\n----> %s", handleResult.DocPath))
+	case handleResult.SavedMaintainResult:
+		resultSb.WriteString(fmt.Sprintf("[markdown handle]:Find relative path error or web image in a doc, change the document successfully.\n----> %s", handleResult.DocPath))
 	default:
 		resultSb.WriteString("Impossible error.")
 	}
@@ -33,6 +35,13 @@ func (handleResult MarkdownHandleResult) ToString() string {
 	if len(handleResult.RelPathCannotFixedErr) > 0 {
 		resultSb.WriteString("\n------> Notice! Have unresolve images.")
 		for _, v := range handleResult.RelPathCannotFixedErr {
+			resultSb.WriteString(fmt.Sprintf("\n--------> %s", v.Error()))
+		}
+	}
+
+	if len(handleResult.WebImgDownloadErr) > 0 {
+		resultSb.WriteString("\n------> Notice! Error occured during downloading images.")
+		for _, v := range handleResult.WebImgDownloadErr {
 			resultSb.WriteString(fmt.Sprintf("\n--------> %s", v.Error()))
 		}
 	}

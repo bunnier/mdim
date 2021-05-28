@@ -16,10 +16,15 @@ func main() {
 	fmt.Println("==========================================")
 
 	// Scan docs in docFolder to maintain image tags.
-	allRefImgsAbsPathSet, markdownHandleResults := core.MaintainImageTags(cliOptions.AbsDocFolder, cliOptions.AbsImgFolder, cliOptions.DoRelPathFix)
+	allRefImgsAbsPathSet, markdownHandleResults := core.MaintainImageTags(
+		cliOptions.AbsDocFolder,
+		cliOptions.AbsImgFolder,
+		cliOptions.DoSave,
+		cliOptions.DoWebImgDownload)
+
 	hasInterruptErr := false
 	for _, handleResult := range markdownHandleResults {
-		if handleResult.HasErrImgRelPath || handleResult.RelPathCannotFixedErr != nil {
+		if handleResult.HasChangeDuringMaintain || handleResult.RelPathCannotFixedErr != nil {
 			fmt.Println(handleResult.ToString())
 			fmt.Println()
 		}
