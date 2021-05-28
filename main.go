@@ -24,7 +24,9 @@ func main() {
 
 	hasInterruptErr := false
 	for _, handleResult := range markdownHandleResults {
-		if handleResult.HasChangeDuringMaintain || handleResult.RelPathCannotFixedErr != nil {
+		if handleResult.HasChangeDuringMaintain ||
+			handleResult.RelPathCannotFixedErr != nil ||
+			handleResult.WebImgDownloadErr != nil {
 			fmt.Println(handleResult.ToString())
 			fmt.Println()
 		}
