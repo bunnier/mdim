@@ -7,21 +7,21 @@
 
 Now:
 
-- Fixed wrong image relative path after moved document.
+- Fix wrong image relative paths after moved document.
 - Download the web images in docs into local folder.
 - Clean up no reference image.
 
 Next:
 
-- Read the paths from enviroment variable.
+- Read the paths in cli-options from enviroment variable.
 
 ## Usage
 
-Install:
+Build:
 
 ```bash
 cd ./mdim
-go install
+go build
 ```
 
 Usage:
