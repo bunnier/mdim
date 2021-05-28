@@ -8,7 +8,7 @@ import (
 	"mdim/core/types"
 )
 
-// DeleteNoRefImgs Iterate imageFolder to find & delete no reference images.
+// DeleteNoRefImgs iterate imageFolder to find & delete no reference images.
 func DeleteNoRefImgs(absImgFolder string, allRefImgsAbsPathSet types.Set, doImgDel bool) []types.ImageHandleResult {
 	handleResultCh := make(chan types.ImageHandleResult)
 	count := 0 // The count of handling files.

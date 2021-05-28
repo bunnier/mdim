@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-// CliOptions Command-line options.
+// CliOptions are command-line options.
 type CliOptions struct {
 	AbsDocFolder     string
 	AbsImgFolder     string
@@ -16,7 +16,7 @@ type CliOptions struct {
 	DoWebImgDownload bool
 }
 
-// GetOptions Deal with cli params.
+// GetOptions from command-line options.
 func GetOptions() *CliOptions {
 	var help bool
 	CliParams := &CliOptions{}

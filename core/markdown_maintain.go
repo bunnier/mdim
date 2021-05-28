@@ -32,7 +32,7 @@ var (
 	httpImgRegex = regexp.MustCompile(`^(?:http[s]?://)(?:[^/]+/)+.+(\.[a-zA-Z]{1,5})$`)
 )
 
-// MaintainImageTags Scan docs in docFolder to fix image relative path.
+// MaintainImageTags will scan docs in docFolder to fix image relative path.
 // The first return is all the reference image paths Set.
 func MaintainImageTags(absDocFolder string, absImgFolder string, doSave bool, doWebImgDownload bool) (types.Set, []types.MarkdownHandleResult) {
 	handleResultCh := make(chan types.MarkdownHandleResult)

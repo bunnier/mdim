@@ -4,19 +4,19 @@ import (
 	"fmt"
 )
 
-// AggregateError Aggregate a list of errors.
+// AggregateError is a list of errors.
 type AggregateError interface {
-	// AddError Add a inner error.
+	// AddError add a inner error.
 	AddError(err error) AggregateError
 
-	// Len Return the inner errors count.
+	// Len will return the inner errors count.
 	Len() int
 
-	// PrintAggregateError Print all inner errors by line.
+	// PrintAggregateError print all inner errors by line.
 	PrintAggregateError()
 }
 
-// NewAggregateError Return a new AggregateError.
+// NewAggregateError return a new AggregateError.
 func NewAggregateError() AggregateError {
 	return new(sliceAggregateError)
 }
@@ -26,7 +26,7 @@ type sliceAggregateError struct {
 	innerErrors []error
 }
 
-// AddError Add a inner error.
+// AddError add a inner error.
 func (errs *sliceAggregateError) AddError(err error) AggregateError {
 	if errs.innerErrors == nil {
 		errs.innerErrors = make([]error, 0, 3)
@@ -35,12 +35,12 @@ func (errs *sliceAggregateError) AddError(err error) AggregateError {
 	return errs
 }
 
-// Len Return the inner errors count.
+// Len will return the inner errors count.
 func (errs *sliceAggregateError) Len() int {
 	return len(errs.innerErrors)
 }
 
-// PrintAggregateError Print all inner errors by line.
+// PrintAggregateError print all inner errors by line.
 func (errs *sliceAggregateError) PrintAggregateError() {
 	for _, err := range errs.innerErrors {
 		fmt.Println(err)
