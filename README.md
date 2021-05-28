@@ -27,7 +27,7 @@ go build
 Usage:
 
 ```bash
-mdim [-h] [-d] [-f] [-i imageFolder] [-m markdownFolder] 
+Usage: mdim [-h] [-d] [-w] [-i imageFolder] [-m markdownFolder] 
 ```
 
 Options:
