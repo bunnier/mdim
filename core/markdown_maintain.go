@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unsafe"
 
 	"mdim/core/types"
 )
@@ -106,7 +107,9 @@ func maintainImageTagsForSingleFile(docPath string, absImgFolder string, doSave 
 		handleResult.Err = fmt.Errorf("reading failed\n%w", err)
 		return nil, handleResult
 	}
-	content := string(contentBytes)
+
+	// directly convert for saving memory
+	content := *(*string)(unsafe.Pointer(&contentBytes))
 
 	// line workflow
 	fixedContent := imgTagRegexp.ReplaceAllStringFunc(content, func(imgTag string) string {
