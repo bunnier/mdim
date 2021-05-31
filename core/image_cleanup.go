@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"mdim/core/types"
+	"1024baby.com/mdim/core/types"
 )
 
 // DeleteNoRefImgs iterate imageFolder to find & delete no reference images.

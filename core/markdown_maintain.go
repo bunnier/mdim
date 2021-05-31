@@ -13,7 +13,7 @@ import (
 	"time"
 	"unsafe"
 
-	"mdim/core/types"
+	"1024baby.com/mdim/core/types"
 )
 
 var (

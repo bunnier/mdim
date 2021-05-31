@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"mdim/core"
+	"1024baby.com/mdim/core"
 )
 
 func main() {
