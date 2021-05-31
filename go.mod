@@ -1,3 +1,3 @@
-module 1024baby.com/mdim
+module github.com/bunnier/mdim
 
 go 1.16
