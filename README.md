@@ -13,11 +13,10 @@ The tool helps to maintain the images in the markdown files.
 
 ## Usage
 
-Build:
+Install:
 
 ```bash
-cd ./mdim
-go build
+go install github.com/bunnier/mdim/cmd/mdim
 ```
 
 Usage:

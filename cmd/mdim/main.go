@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bunnier/mdim/core"
+	core "github.com/bunnier/mdim/internal"
 )
 
 func main() {

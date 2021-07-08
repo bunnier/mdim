@@ -15,10 +15,7 @@
 *.dll
 *.so
 *.dylib
-mdim
 mdim.exe
-main
-main.exe
 
 # Test binary, built with `go test -c`
 *.test

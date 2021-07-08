@@ -13,7 +13,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/bunnier/mdim/core/types"
+	"github.com/bunnier/mdim/internal/types"
 )
 
 var (

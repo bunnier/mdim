@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/bunnier/mdim/core/types"
+	"github.com/bunnier/mdim/internal/types"
 )
 
 // DeleteNoRefImgs iterate imageFolder to find & delete no reference images.
