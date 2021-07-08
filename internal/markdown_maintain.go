@@ -203,7 +203,7 @@ func convertRemoteImageToLocal(docPath string, imgPath string, absImgFolder stri
 
 	filename := time.Now().Format("2006-01-2-15-04-05.000") + imgSuffix
 	absImgPath := filepath.Join(absImgFolder, filename)
-	if err := os.WriteFile(absImgPath, imgBytes, 666); err != nil {
+	if err := os.WriteFile(absImgPath, imgBytes, 0666); err != nil {
 		return "", "", err
 	}
 
