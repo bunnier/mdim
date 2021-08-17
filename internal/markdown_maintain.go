@@ -213,6 +213,8 @@ func convertRemoteImageToLocal(docPath string, imgPath string, absImgFolder stri
 		return "", "", err
 	}
 
+	fixImgRelPath = slashReplaceRegexp.ReplaceAllString(fixImgRelPath, "/")
+
 	return fixImgRelPath, absImgPath, nil
 }
 
