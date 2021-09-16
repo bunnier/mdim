@@ -4,19 +4,19 @@ import (
 	"fmt"
 	"os"
 
-	core "github.com/bunnier/mdim/internal"
+	"github.com/bunnier/mdim/internal"
 )
 
 func main() {
 	// Deal with options.
-	cliOptions := core.GetOptions()
+	cliOptions := internal.GetOptions()
 
 	fmt.Println("==========================================")
 	fmt.Println("  Starting to scan markdown document..")
 	fmt.Println("==========================================")
 
 	// Scan docs in docFolder to maintain image tags.
-	allRefImgsAbsPathSet, markdownHandleResults := core.MaintainImageTags(
+	allRefImgsAbsPathSet, markdownHandleResults := internal.MaintainImageTags(
 		cliOptions.AbsDocFolder,
 		cliOptions.AbsImgFolder,
 		cliOptions.DoSave,
@@ -44,7 +44,7 @@ func main() {
 	fmt.Println("==========================================")
 
 	// Delete no reference images.
-	for _, handleResult := range core.DeleteNoRefImgs(cliOptions.AbsImgFolder, allRefImgsAbsPathSet, cliOptions.DoImgDel) {
+	for _, handleResult := range internal.DeleteNoRefImgs(cliOptions.AbsImgFolder, allRefImgsAbsPathSet, cliOptions.DoImgDel) {
 		fmt.Println(handleResult.ToString())
 		fmt.Println()
 	}

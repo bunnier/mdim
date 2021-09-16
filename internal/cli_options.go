@@ -5,15 +5,23 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 )
 
 // CliOptions are command-line options.
 type CliOptions struct {
-	AbsDocFolder     string
-	AbsImgFolder     string
+	AbsDocFolder string
+	AbsImgFolder string
+
 	DoSave           bool
 	DoImgDel         bool
 	DoWebImgDownload bool
+
+	// Upload to qiniu.
+	UploadToQiniu bool
+
+	QiniuAk string
+	QiniuSk string
 }
 
 // GetOptions from command-line options.
@@ -29,7 +37,17 @@ func GetOptions() *CliOptions {
 	flag.StringVar(&CliParams.AbsDocFolder, "m", "", "Must not be empty. Assign the folder which markdown documents save in, also can be provided by setting env variable named 'mdim_docFolder'")
 	flag.StringVar(&CliParams.AbsImgFolder, "i", "", "Must not be empty. Assign the folder which images save in, also can be provided by setting env variable named 'mdim_imgFolder'.")
 
+	flag.BoolVar(&CliParams.UploadToQiniu, "qiniu", false, "Upload to Qiniu Cloud space, must follow")
+
 	flag.Parse()
+
+	if CliParams.UploadToQiniu {
+		commandArgs := flag.CommandLine.Args()
+		qiniuArgsIndex := sort.SearchStrings(commandArgs, "-q")
+		qiniuArgs := commandArgs[qiniuArgsIndex:2] // first is ak, second is sk
+		CliParams.QiniuAk = qiniuArgs[0]
+		CliParams.QiniuSk = qiniuArgs[1]
+	}
 
 	// Show usage and then exit directly.
 	if help {
