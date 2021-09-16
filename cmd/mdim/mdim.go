@@ -1,8 +1,8 @@
 package main
 
 import (
-	"flag"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -48,7 +48,7 @@ Github: https://github.com/bunnier/mdim`,
 		}
 
 		if mdimParam.AbsImgFolder == "" || mdimParam.AbsDocFolder == "" {
-			flag.Usage()
+			cmd.Usage()
 			os.Exit(1)
 		}
 
@@ -57,32 +57,28 @@ Github: https://github.com/bunnier/mdim`,
 		if !filepath.IsAbs(mdimParam.AbsImgFolder) {
 			mdimParam.AbsImgFolder, err = filepath.Abs(mdimParam.AbsImgFolder)
 			if err != nil {
-				fmt.Printf("Cannot get the abs path of imageFolder\n%s\n%s", mdimParam.AbsImgFolder, err.Error())
-				os.Exit(2)
+				log.Fatalf("Cannot get the abs path of imageFolder\n%s\n%s", mdimParam.AbsImgFolder, err.Error())
 			}
 			if _, err := os.Lstat(mdimParam.AbsImgFolder); err != nil {
-				fmt.Printf("Cannot get the abs path of imageFolder\n%s\n%s", mdimParam.AbsImgFolder, err.Error())
-				os.Exit(3)
+				log.Fatalf("Cannot get the abs path of imageFolder\n%s\n%s", mdimParam.AbsImgFolder, err.Error())
 			}
 		}
 
 		if !filepath.IsAbs(mdimParam.AbsDocFolder) {
 			mdimParam.AbsDocFolder, err = filepath.Abs(mdimParam.AbsDocFolder)
 			if err != nil {
-				fmt.Printf("Cannot get the absolutely path of markdownFolder\n%s\n%s", mdimParam.AbsDocFolder, err.Error())
-				os.Exit(4)
+				log.Fatalf("Cannot get the absolutely path of markdownFolder\n%s\n%s", mdimParam.AbsDocFolder, err.Error())
 			}
 			if _, err := os.Lstat(mdimParam.AbsDocFolder); err != nil {
-				fmt.Printf("Cannot get the abs path of markdownFolder\n%s\n%s", mdimParam.AbsDocFolder, err.Error())
-				os.Exit(5)
+				log.Fatalf("Cannot get the abs path of markdownFolder\n%s\n%s", mdimParam.AbsDocFolder, err.Error())
 			}
 		}
 
-		doMdim(mdimParam)
+		doMdimCmd(mdimParam)
 	},
 }
 
-func doMdim(param *MdimParam) {
+func doMdimCmd(param *MdimParam) {
 	fmt.Println("==========================================")
 	fmt.Println("  Starting to scan markdown document..")
 	fmt.Println("==========================================")
