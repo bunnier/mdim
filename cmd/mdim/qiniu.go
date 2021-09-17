@@ -27,9 +27,22 @@ var qiniuCmd = &cobra.Command{
 	Short: "Uploading the local image files in specific markdown files to Qiniu cloud space.",
 	Long:  "The tool helps to upload the local image files in specific markdown files to Qiniu cloud space.",
 	Run: func(cmd *cobra.Command, args []string) {
-		// TODO ...
-		cmd.Usage()
-		os.Exit(1)
+		if qiniuParam.Ak == "" {
+			qiniuParam.Ak = os.Getenv("mdim_qiniu_ak")
+		}
+
+		if qiniuParam.Sk == "" {
+			qiniuParam.Ak = os.Getenv("mdim_qiniu_sk")
+		}
+
+		if qiniuParam.Bucket == "" {
+			qiniuParam.Ak = os.Getenv("mdim_qiniu_bucket")
+		}
+
+		if qiniuParam.Ak == "" || qiniuParam.Sk == "" || qiniuParam.Bucket == "" {
+			cmd.Usage()
+			os.Exit(1)
+		}
 
 		doQiniuCmd(qiniuParam)
 	},
