@@ -16,6 +16,7 @@
 *.so
 *.dylib
 mdim.exe
+mdim
 
 # Test binary, built with `go test -c`
 *.test
