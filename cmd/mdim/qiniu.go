@@ -49,4 +49,5 @@ var qiniuCmd = &cobra.Command{
 }
 
 func doQiniuCmd(param *QiniuParam) {
+
 }
