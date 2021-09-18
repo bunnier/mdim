@@ -1,4 +1,4 @@
-package internal
+package markdown
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 	"sync"
 	"unsafe"
 
-	"github.com/bunnier/mdim/internal/types"
+	"github.com/bunnier/mdim/internal/base"
 )
 
 var (
@@ -24,8 +24,8 @@ var (
 // MarkdownImageTag represent an image tag in markdown document.
 type MarkdownImageTag struct {
 	IsWebUrl     bool
-	Tag          string
-	Title        string
+	WholeTag     string
+	ImgTitle     string
 	DocPath      string
 	ImgPath      string
 	AbsImgFolder string
@@ -33,12 +33,12 @@ type MarkdownImageTag struct {
 }
 
 // ImageMaintainStep is markdown handle step.
-type ImageMaintainStep func(imgTag *MarkdownImageTag, handleResult types.MarkdownHandleResult) error
+type ImageMaintainStep func(imgTag *MarkdownImageTag, handleResult MarkdownHandleResult) error
 
 // WalkDirToHandleDocs will scan docs in docFolder to fix image relative path.
 // The first return is all the reference image paths Set.
-func WalkDirToHandleDocs(absDocFolder string, absImgFolder string, doSave bool, doWebImgDownload bool) []types.MarkdownHandleResult {
-	handleResultCh := make(chan types.MarkdownHandleResult)
+func WalkDirToHandleDocs(absDocFolder string, absImgFolder string, doSave bool, doWebImgDownload bool) []MarkdownHandleResult {
+	handleResultCh := make(chan MarkdownHandleResult)
 	wg := sync.WaitGroup{}
 
 	fileNum := 0 // The count of handling files.
@@ -64,7 +64,7 @@ func WalkDirToHandleDocs(absDocFolder string, absImgFolder string, doSave bool, 
 		close(handleResultCh)
 	}()
 
-	aggreagateResult := make([]types.MarkdownHandleResult, 0, fileNum)
+	aggreagateResult := make([]MarkdownHandleResult, 0, fileNum)
 	for {
 		handleResult, chOpen := <-handleResultCh
 		if !chOpen {
@@ -78,8 +78,8 @@ func WalkDirToHandleDocs(absDocFolder string, absImgFolder string, doSave bool, 
 
 // Fix the image urls of the doc.
 // The first return is all the reference image paths Set.
-func handleDoc(docPath string, absImgFolder string, doSave bool, doWebImgDownload bool, steps ...ImageMaintainStep) types.MarkdownHandleResult {
-	handleResult := types.MarkdownHandleResult{DocPath: docPath}
+func handleDoc(docPath string, absImgFolder string, doSave bool, doWebImgDownload bool, steps ...ImageMaintainStep) MarkdownHandleResult {
+	handleResult := MarkdownHandleResult{DocPath: docPath}
 	// get doc file content
 	contentBytes, err := os.ReadFile(docPath)
 	if err != nil {
@@ -87,39 +87,39 @@ func handleDoc(docPath string, absImgFolder string, doSave bool, doWebImgDownloa
 		return handleResult
 	}
 
-	handleResult.AllRefImgs = types.NewSet(10) // To store reference image paths.
+	handleResult.AllRefImgs = base.NewSet(10) // To store reference image paths.
 
 	// directly convert for saving memory
 	content := *(*string)(unsafe.Pointer(&contentBytes))
 
 	// line workflow
-	fixedContent := imgTagRegexp.ReplaceAllStringFunc(content, func(imgTag string) string {
-		matchParts := imgTagRegexp.FindStringSubmatch(imgTag) // matchLine is whole image tag
-		imgTitle := matchParts[1]                             // tag title
-		imgPath := matchParts[2]                              // img path
-		imgProtocol := strings.ToLower(matchParts[3])         // protocol
+	fixedContent := imgTagRegexp.ReplaceAllStringFunc(content, func(wholeImgTag string) string {
+		matchParts := imgTagRegexp.FindStringSubmatch(wholeImgTag) // matchLine is whole image tag
+		imgTitle := matchParts[1]                                  // tag title
+		imgPath := matchParts[2]                                   // img path
+		imgProtocol := strings.ToLower(matchParts[3])              // protocol
 
 		// Can't handle this url.
 		if imgProtocol != "" && (!doWebImgDownload || !httpValidRegex.MatchString(imgProtocol)) {
 			handleResult.AllRefImgs.Add(imgPath)
-			return imgTag
+			return wholeImgTag
 		}
 
 		imgTagInfo := &MarkdownImageTag{
 			IsWebUrl:     imgProtocol != "",
-			Tag:          imgTag,
-			Title:        imgTitle,
+			Protocal:     imgProtocol,
+			WholeTag:     wholeImgTag,
+			ImgTitle:     imgTitle,
 			DocPath:      docPath,
 			ImgPath:      imgPath,
 			AbsImgFolder: absImgFolder,
-			Protocal:     imgProtocol,
 		}
 
 		for _, handleStep := range steps {
 			handleStep(imgTagInfo, handleResult)
 		}
 
-		return imgTagInfo.Tag
+		return imgTagInfo.WholeTag
 	})
 
 	handleResult.HasChangeDuringMaintain = fixedContent != content

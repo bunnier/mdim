@@ -1,16 +1,16 @@
-package internal
+package cleaner
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/bunnier/mdim/internal/types"
+	"github.com/bunnier/mdim/internal/base"
 )
 
 // DeleteNoRefImgs iterate imageFolder to find & delete no reference images.
-func DeleteNoRefImgs(absImgFolder string, allRefImgsAbsPathSet types.Set, doImgDel bool) []types.ImageHandleResult {
-	handleResultCh := make(chan types.ImageHandleResult)
+func DeleteNoRefImgs(absImgFolder string, allRefImgsAbsPathSet base.Set, doImgDel bool) []ImageHandleResult {
+	handleResultCh := make(chan ImageHandleResult)
 	count := 0 // The count of handling files.
 	filepath.WalkDir(absImgFolder, func(imgPath string, d os.DirEntry, err error) error {
 		if d.IsDir() {
@@ -23,7 +23,7 @@ func DeleteNoRefImgs(absImgFolder string, allRefImgsAbsPathSet types.Set, doImgD
 
 		count++
 		go func() {
-			handleResult := types.ImageHandleResult{ImagePath: imgPath}
+			handleResult := ImageHandleResult{ImagePath: imgPath}
 			defer func() {
 				// Ensure to pass handling result to main goroutine, otherwise can cause deadlock.
 				handleResultCh <- handleResult
@@ -42,7 +42,7 @@ func DeleteNoRefImgs(absImgFolder string, allRefImgsAbsPathSet types.Set, doImgD
 	})
 
 	// handling result receiver
-	handleResultSlice := make([]types.ImageHandleResult, 0, count)
+	handleResultSlice := make([]ImageHandleResult, 0, count)
 	for count > 0 {
 		handleResult := <-handleResultCh
 		handleResultSlice = append(handleResultSlice, handleResult)

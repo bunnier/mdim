@@ -1,13 +1,15 @@
-package types
+package markdown
 
 import (
 	"fmt"
 	"strings"
+
+	"github.com/bunnier/mdim/internal/base"
 )
 
 type MarkdownHandleResult struct {
 	DocPath    string
-	AllRefImgs Set
+	AllRefImgs base.Set
 
 	RelPathCannotFixedErr   []error
 	HasChangeDuringMaintain bool

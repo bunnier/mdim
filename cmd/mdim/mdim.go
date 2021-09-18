@@ -6,8 +6,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/bunnier/mdim/internal"
-	"github.com/bunnier/mdim/internal/types"
+	"github.com/bunnier/mdim/internal/base"
+	"github.com/bunnier/mdim/internal/cleaner"
+	"github.com/bunnier/mdim/internal/markdown"
 	"github.com/spf13/cobra"
 )
 
@@ -85,14 +86,14 @@ func doMdimCmd(param *MdimParam) {
 	fmt.Println("==========================================")
 
 	// Scan docs in docFolder to maintain image tags.
-	markdownHandleResults := internal.WalkDirToHandleDocs(
+	markdownHandleResults := markdown.WalkDirToHandleDocs(
 		param.AbsDocFolder,
 		param.AbsImgFolder,
 		param.DoSave,
 		param.DoWebImgDownload)
 
 	hasInterruptErr := false
-	allRefImgsAbsPathSet := types.NewSet(100)
+	allRefImgsAbsPathSet := base.NewSet(100)
 	for _, handleResult := range markdownHandleResults {
 		if handleResult.HasChangeDuringMaintain ||
 			handleResult.RelPathCannotFixedErr != nil ||
@@ -117,7 +118,7 @@ func doMdimCmd(param *MdimParam) {
 	fmt.Println("==========================================")
 
 	// Delete no reference images.
-	for _, handleResult := range internal.DeleteNoRefImgs(param.AbsImgFolder, allRefImgsAbsPathSet, param.DoImgDel) {
+	for _, handleResult := range cleaner.DeleteNoRefImgs(param.AbsImgFolder, allRefImgsAbsPathSet, param.DoImgDel) {
 		fmt.Println(handleResult.ToString())
 		fmt.Println()
 	}

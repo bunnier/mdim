@@ -1,4 +1,4 @@
-package types
+package base
 
 type Set interface {
 	// Exist determine the data whether have already existed in the Set or not, if they have, return true, otherwise return false.
