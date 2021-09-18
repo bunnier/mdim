@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/bunnier/mdim/internal"
+	"github.com/bunnier/mdim/internal/types"
 	"github.com/spf13/cobra"
 )
 
@@ -91,6 +92,7 @@ func doMdimCmd(param *MdimParam) {
 		param.DoWebImgDownload)
 
 	hasInterruptErr := false
+	allRefImgsAbsPathSet := types.NewSet(100)
 	for _, handleResult := range markdownHandleResults {
 		if handleResult.HasChangeDuringMaintain ||
 			handleResult.RelPathCannotFixedErr != nil ||
@@ -98,9 +100,12 @@ func doMdimCmd(param *MdimParam) {
 			fmt.Println(handleResult.ToString())
 			fmt.Println()
 		}
+
 		if handleResult.Err != nil {
 			hasInterruptErr = true
 		}
+
+		allRefImgsAbsPathSet.Merge(handleResult.AllRefImgs)
 	}
 
 	if hasInterruptErr {
@@ -112,11 +117,9 @@ func doMdimCmd(param *MdimParam) {
 	fmt.Println("==========================================")
 
 	// Delete no reference images.
-	for _, mdHandleResult := range markdownHandleResults {
-		for _, imageHandleResult := range internal.DeleteNoRefImgs(param.AbsImgFolder, mdHandleResult.AllRefImgs, param.DoImgDel) {
-			fmt.Println(imageHandleResult.ToString())
-			fmt.Println()
-		}
+	for _, handleResult := range internal.DeleteNoRefImgs(param.AbsImgFolder, allRefImgsAbsPathSet, param.DoImgDel) {
+		fmt.Println(handleResult.ToString())
+		fmt.Println()
 	}
 
 	fmt.Println("==========================================")
