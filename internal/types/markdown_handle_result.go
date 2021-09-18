@@ -6,7 +6,8 @@ import (
 )
 
 type MarkdownHandleResult struct {
-	DocPath string
+	DocPath    string
+	AllRefImgs Set
 
 	RelPathCannotFixedErr   []error
 	HasChangeDuringMaintain bool

@@ -84,7 +84,7 @@ func doMdimCmd(param *MdimParam) {
 	fmt.Println("==========================================")
 
 	// Scan docs in docFolder to maintain image tags.
-	allRefImgsAbsPathSet, markdownHandleResults := internal.MaintainImageTags(
+	markdownHandleResults := internal.WalkDirToHandleDocs(
 		param.AbsDocFolder,
 		param.AbsImgFolder,
 		param.DoSave,
@@ -112,9 +112,11 @@ func doMdimCmd(param *MdimParam) {
 	fmt.Println("==========================================")
 
 	// Delete no reference images.
-	for _, handleResult := range internal.DeleteNoRefImgs(param.AbsImgFolder, allRefImgsAbsPathSet, param.DoImgDel) {
-		fmt.Println(handleResult.ToString())
-		fmt.Println()
+	for _, mdHandleResult := range markdownHandleResults {
+		for _, imageHandleResult := range internal.DeleteNoRefImgs(param.AbsImgFolder, mdHandleResult.AllRefImgs, param.DoImgDel) {
+			fmt.Println(imageHandleResult.ToString())
+			fmt.Println()
+		}
 	}
 
 	fmt.Println("==========================================")
