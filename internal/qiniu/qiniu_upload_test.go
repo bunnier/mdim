@@ -12,7 +12,8 @@ const (
 	sk          string = "hR4Ni1V85EPXSH5PWkueiHyM14JEjtX_HmHl7pDE"
 	bucket      string = "1024baby"
 	testImgPath string = "/Users/zhongrui/Desktop/儿童语言发展.jpg"
-	testDomain  string = "http://img.1024baby.com"
+	testDomain  string = "img.1024baby.com"
+	useHTTPS    bool   = true
 )
 
 func TestQiniuUploadApi_Upload(t *testing.T) {
@@ -28,7 +29,7 @@ func TestQiniuUploadApi_Upload(t *testing.T) {
 	}{
 		{
 			"test1",
-			NewQuniuUploadApi(ak, sk, bucket, QiniuUploadApiDomainOption(testDomain)),
+			NewQuniuUploadApi(ak, sk, bucket, useHTTPS, QiniuUploadApiDomainOption(testDomain)),
 			args{remoteFilepath: filepath.Base(testImgPath), localFilepath: testImgPath},
 			false,
 		},

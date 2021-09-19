@@ -12,11 +12,12 @@ import (
 
 // QiniuOptions are command-line options.
 type QiniuOptions struct {
-	Sk     string
-	Ak     string
-	Bucket string
-	Folder string
-	Domain string
+	Sk       string
+	Ak       string
+	Bucket   string
+	Folder   string
+	Domain   string
+	UseHTTPS bool
 }
 
 var qiniuOptions = &QiniuOptions{}
@@ -28,7 +29,8 @@ func init() {
 	flags.StringVarP(&qiniuOptions.Ak, "ak", "", "", "Must not be empty. Assign the AK(Access Key) of Qiniu SDK, also can be provided by setting env variable named 'mdim_qiniu_ak'.")
 	flags.StringVarP(&qiniuOptions.Bucket, "bucket", "b", "", "Must not be empty. Assign the Bucket of Qiniu SDK, also can be provided by setting env variable named 'mdim_qiniu_bucket'.")
 	flags.StringVarP(&qiniuOptions.Domain, "domain", "d", "", "The domain of uploaded image url, also can be provided by setting env variable named 'mdim_qiniu_domain'. If do not assign the option, will use first domain in specific bucket")
-	flags.StringVarP(&qiniuOptions.Folder, "folder", "u", "", "After uploaded, you images can access in this url {domain}/{path}/{img_name}")
+	flags.StringVarP(&qiniuOptions.Folder, "folder", "u", "", "After uploaded, you images can access in this url {protocal}://{domain}/{path}/{img_name}")
+	flags.BoolVarP(&qiniuOptions.UseHTTPS, "https", "t", false, "If assign this option, will use https instead of http.")
 }
 
 var qiniuCmd = &cobra.Command{
@@ -69,7 +71,7 @@ func doQiniuCmd(param *QiniuOptions) {
 	fmt.Println("==========================================")
 
 	qiniuApi := qiniu.NewQuniuUploadApi(
-		param.Ak, param.Sk, param.Bucket,
+		param.Ak, param.Sk, param.Bucket, param.UseHTTPS,
 		qiniu.QiniuUploadApiDomainOption(param.Domain),
 		qiniu.QiniuUploadApiDefaultFolderOption(param.Folder),
 	)

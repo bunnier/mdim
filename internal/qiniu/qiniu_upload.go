@@ -16,6 +16,7 @@ import (
 type QiniuUploadApi struct {
 	ak              string
 	sk              string
+	https           bool
 	bucket          string
 	defaultFolder   string
 	domain          string
@@ -39,16 +40,17 @@ func QiniuUploadApiDefaultFolderOption(defaultFolder string) QiniuUploadApiOptio
 	}
 }
 
-func NewQuniuUploadApi(ak, sk, bucket string, options ...QiniuUploadApiOption) *QiniuUploadApi {
+func NewQuniuUploadApi(ak, sk, bucket string, https bool, options ...QiniuUploadApiOption) *QiniuUploadApi {
 	api := &QiniuUploadApi{
 		ak:     ak,
 		sk:     sk,
 		bucket: bucket,
 		mac:    qbox.NewMac(ak, sk),
+		https:  https,
 	}
 
 	cfg := storage.Config{
-		UseHTTPS: true,
+		UseHTTPS: https,
 	}
 	api.bucketManager = storage.NewBucketManager(api.mac, &cfg)
 
@@ -115,5 +117,10 @@ func (api *QiniuUploadApi) UploadContext(ctx context.Context, remoteFilepath, lo
 	if err := formUploader.PutFile(ctx, &ret, api.token, remoteFilepath, localFilepath, nil); err != nil {
 		return "", err
 	}
-	return storage.MakePublicURL(api.domain, remoteFilepath), nil
+
+	protocal := "http://"
+	if api.https {
+		protocal = "https://"
+	}
+	return protocal + storage.MakePublicURL(api.domain, remoteFilepath), nil
 }
