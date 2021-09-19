@@ -1,37 +1,40 @@
-# mdim - Markdown Images Maintainer
+# mdim - Markdown Images Maintainer (Markdown 文档图片维护助手)
 
 [![Go](https://github.com/bunnier/mdim/actions/workflows/go.yml/badge.svg)](https://github.com/bunnier/mdim/actions/workflows/go.yml) [![CodeQL](https://github.com/bunnier/mdim/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/bunnier/mdim/actions/workflows/codeql-analysis.yml)
 
-> The tool helps to maintain the images in the markdown files.
+> The tool helps to maintain the images in the markdown files.  
+> 本工具用于协助维护 markdown 文件中的图片。
 
 ## Usage
 
-### Fix wrong image relative paths after moved document
+### Fix wrong image relative paths after moved document（在移动文档后修正错误的图片引用）
 
 ```bash
-./mdim --doc {doc_path} --imgFolder {img_folder} --relfix # for single document
-./mdim --docFolder {doc_folder} --imgFolder {img_folder} --relfix # for folder
+mdim --doc {doc_path} --imgFolder {img_folder} --relfix # for single document
+mdim --docFolder {doc_folder} --imgFolder {img_folder} --relfix # for folder
 ```
 
-### Download the web images in docs into local folder
+### Download the web images in docs into local folder（将文档中的 Web 图片下载回本地）
 
 ```bash
-./mdim --doc {doc_path} --imgFolder {img_folder} --web # for single document
-./mdim --docFolder {doc_folder} --imgFolder {img_folder} --web # for folder
+mdim --doc {doc_path} --imgFolder {img_folder} --web # for single document
+mdim --docFolder {doc_folder} --imgFolder {img_folder} --web # for folder
 ```
 
-### Clean up no reference images
+### Clean up no reference images（清理本地图片库中不再被任何文档引用的图片）
 
 ```bash
-./mdim --doc {doc_path} --imgFolder {img_folder} --delete # for single document
-./mdim --docFolder {doc_folder} --imgFolder {img_folder} --delete # for folder
+mdim --doc {doc_path} --imgFolder {img_folder} --delete # for single document
+mdim --docFolder {doc_folder} --imgFolder {img_folder} --delete # for folder
 ```
 
-### Convert local markdown images to web images
+### Convert local markdown images to web images（将本地引用的图片转为 web 图片）
+
+> Only support Qiniu Cloud for now. (目前仅支持 七牛云)
 
 ```bash
-./mdim qiniu --doc {doc_path} --imgFolder {img_folder} --ak {qiniu_ak} --sk {qiniu_sk} --bucket {qiniu_bucket} # for single document
-./mdim qiniu --docFolder {doc_folder} --imgFolder {img_folder} --ak {qiniu_ak} --sk {qiniu_sk} --bucket {qiniu_bucket} # for folder
+mdim qiniu --doc {doc_path} --imgFolder {img_folder} --ak {qiniu_ak} --sk {qiniu_sk} --bucket {qiniu_bucket} # for single document
+mdim qiniu --docFolder {doc_folder} --imgFolder {img_folder} --ak {qiniu_ak} --sk {qiniu_sk} --bucket {qiniu_bucket} # for folder
 ```
 
 ## Document
