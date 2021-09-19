@@ -9,7 +9,7 @@ import (
 )
 
 // DeleteNoRefImgs iterate imageFolder to find & delete no reference images.
-func DeleteNoRefImgs(absImgFolder string, allRefImgsAbsPathSet base.Set, doImgDel bool) []HandleResult {
+func DeleteNoRefImgs(absImgFolder string, allRefImgsAbsPathSet base.Set) []HandleResult {
 	handleResultCh := make(chan HandleResult)
 	count := 0 // The count of handling files.
 	filepath.WalkDir(absImgFolder, func(imgPath string, d os.DirEntry, err error) error {
@@ -28,13 +28,9 @@ func DeleteNoRefImgs(absImgFolder string, allRefImgsAbsPathSet base.Set, doImgDe
 				// Ensure to pass handling result to main goroutine, otherwise can cause deadlock.
 				handleResultCh <- handleResult
 			}()
-			if doImgDel {
-				if err := os.Remove(imgPath); err != nil {
-					handleResult.Err = fmt.Errorf("delete no referemce image failed\n%w", err)
-					handleResult.Deleted = false
-				} else {
-					handleResult.Deleted = true
-				}
+
+			if err := os.Remove(imgPath); err != nil {
+				handleResult.Err = fmt.Errorf("delete no referemce image failed\n%w", err)
 			}
 		}()
 

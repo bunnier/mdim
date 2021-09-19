@@ -12,7 +12,6 @@ type HandleResult struct {
 	AllRefImgs base.Set
 
 	HasChangeDuringWorkflow bool
-	SavedResult             bool
 
 	RelPathCannotFixedErr []error
 	WebImgDownloadErr     []error
@@ -28,12 +27,8 @@ func (handleResult HandleResult) String() string {
 		resultSb.WriteString(fmt.Sprintf("[markdown handle]: Occur an error when maintain doc.\n----> %s\n----> %s", handleResult.DocPath, handleResult.Err.Error()))
 	case !handleResult.HasChangeDuringWorkflow:
 		resultSb.WriteString(fmt.Sprintf("[markdown handle]: Nothing to do for document.\n----> %s", handleResult.DocPath))
-	case !handleResult.SavedResult:
-		resultSb.WriteString(fmt.Sprintf("[markdown handle]: Exec workflow successfully, but did not save document this time.\n----> %s", handleResult.DocPath))
-	case handleResult.SavedResult:
-		resultSb.WriteString(fmt.Sprintf("[markdown handle]: Exec workflow and save the document successfully.\n----> %s", handleResult.DocPath))
 	default:
-		resultSb.WriteString("Impossible error.")
+		resultSb.WriteString(fmt.Sprintf("[markdown handle]: Exec workflow and save the document successfully.\n----> %s", handleResult.DocPath))
 	}
 
 	if len(handleResult.RelPathCannotFixedErr) > 0 {

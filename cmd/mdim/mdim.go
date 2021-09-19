@@ -12,6 +12,7 @@ import (
 
 // MdimOptions are command-line options.
 type MdimOptions struct {
+	RelFix           bool
 	DoImgDel         bool
 	DoWebImgDownload bool
 }
@@ -21,8 +22,9 @@ var mdimOptions = &MdimOptions{}
 func init() {
 	flags := mdimCmd.Flags()
 	initBaseOptions(flags)
-	flags.BoolVarP(&mdimOptions.DoImgDel, "delete", "d", false, "Set the option to delete no reference images, otherwise print the paths only.")
-	flags.BoolVarP(&mdimOptions.DoWebImgDownload, "web", "w", false, "Set the option to download web images to imageFolder. This option might be set with the '--save' option, otherwise although images have been download to imageFolder, the path in document still be url.")
+	flags.BoolVarP(&mdimOptions.RelFix, "relfix", "r", false, "Set this option to fix wrong local relative path of images after moved document.")
+	flags.BoolVarP(&mdimOptions.DoImgDel, "delete", "d", false, "Set this option to delete no reference images, otherwise print the paths only.")
+	flags.BoolVarP(&mdimOptions.DoWebImgDownload, "web", "w", false, "Set this option to download reference web images to 'imgFolder'.")
 }
 
 var mdimCmd = &cobra.Command{
@@ -30,7 +32,7 @@ var mdimCmd = &cobra.Command{
 	Short: "The tool helps to maintain the images in the markdown files.",
 	Long: `The tool helps to maintain the images in the markdown files.
 Github: https://github.com/bunnier/mdim`,
-	Version: "1.2",
+	Version: "2.0.0",
 	Run: func(cmd *cobra.Command, args []string) {
 		validateBaseOptions(cmd)
 		doMdimCmd(mdimOptions)
@@ -43,13 +45,18 @@ func doMdimCmd(param *MdimOptions) {
 	fmt.Println("==========================================")
 
 	// workflow steps
-	steps := []markdown.ImageMaintainStep{markdown.FixLocalImageRelpathStep}
+	steps := make([]markdown.ImageMaintainStep, 0, 2)
+
+	if param.RelFix {
+		steps = append(steps, markdown.FixLocalImageRelpathStep)
+	}
+
 	if param.DoWebImgDownload {
 		steps = append(steps, markdown.DownloadImageStep)
 	}
 
 	// Scan docs in docFolder to maintain image tags.
-	markdownHandleResults := markdown.WalkDirToHandleDocs(baseOptions.SingleDocument, baseOptions.AbsDocFolder, baseOptions.AbsImgFolder, baseOptions.DoSave, steps)
+	markdownHandleResults := markdown.WalkDirToHandleDocs(baseOptions.SingleDocument, baseOptions.AbsDocFolder, baseOptions.AbsImgFolder, steps)
 
 	hasInterruptErr := false
 	allRefImgsAbsPathSet := base.NewSet(100)
@@ -72,14 +79,16 @@ func doMdimCmd(param *MdimOptions) {
 		os.Exit(10)
 	}
 
-	fmt.Println("==========================================")
-	fmt.Println("  Starting to scan image(s)..")
-	fmt.Println("==========================================")
+	if param.DoImgDel {
+		fmt.Println("==========================================")
+		fmt.Println("  Starting to scan image(s)..")
+		fmt.Println("==========================================")
 
-	// Delete no reference images.
-	for _, handleResult := range cleaner.DeleteNoRefImgs(baseOptions.AbsImgFolder, allRefImgsAbsPathSet, param.DoImgDel) {
-		fmt.Println(handleResult.String())
-		fmt.Println()
+		// Delete no reference images.
+		for _, handleResult := range cleaner.DeleteNoRefImgs(baseOptions.AbsImgFolder, allRefImgsAbsPathSet) {
+			fmt.Println(handleResult.String())
+			fmt.Println()
+		}
 	}
 
 	fmt.Println("==========================================")

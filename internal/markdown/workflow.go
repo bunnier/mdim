@@ -37,14 +37,14 @@ type ImageMaintainStep func(imgTag *ImageTag, handleResult *HandleResult) error
 
 // WalkDirToHandleDocs will scan docs in docFolder to fix image relative path.
 // The first return is all the reference image paths Set.
-func WalkDirToHandleDocs(absDocPath string, absDocFolder string, absImgFolder string, doSave bool, steps []ImageMaintainStep) []HandleResult {
+func WalkDirToHandleDocs(absDocPath string, absDocFolder string, absImgFolder string, steps []ImageMaintainStep) []HandleResult {
 	handleResultCh := make(chan HandleResult)
 
 	fileNum := 0 // The count of handling files.
 	if absDocPath != "" {
 		fileNum++
 		go func() {
-			handleResultCh <- handleDoc(absDocPath, absImgFolder, doSave, steps)
+			handleResultCh <- handleDoc(absDocPath, absImgFolder, steps)
 			close(handleResultCh)
 		}()
 	} else {
@@ -59,7 +59,7 @@ func WalkDirToHandleDocs(absDocPath string, absDocFolder string, absImgFolder st
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				handleResultCh <- handleDoc(docPath, absImgFolder, doSave, steps)
+				handleResultCh <- handleDoc(docPath, absImgFolder, steps)
 			}()
 
 			return nil
@@ -86,7 +86,7 @@ func WalkDirToHandleDocs(absDocPath string, absDocFolder string, absImgFolder st
 
 // Fix the image urls of the doc.
 // The first return is all the reference image paths Set.
-func handleDoc(docPath string, absImgFolder string, doSave bool, steps []ImageMaintainStep) HandleResult {
+func handleDoc(docPath string, absImgFolder string, steps []ImageMaintainStep) HandleResult {
 	handleResult := HandleResult{DocPath: docPath}
 	// get doc file content
 	contentBytes, err := os.ReadFile(docPath)
@@ -126,7 +126,7 @@ func handleDoc(docPath string, absImgFolder string, doSave bool, steps []ImageMa
 
 	handleResult.HasChangeDuringWorkflow = fixedContent != content
 
-	if !handleResult.HasChangeDuringWorkflow || !doSave {
+	if !handleResult.HasChangeDuringWorkflow {
 		return handleResult
 	}
 
@@ -136,7 +136,6 @@ func handleDoc(docPath string, absImgFolder string, doSave bool, steps []ImageMa
 		return handleResult
 	}
 
-	handleResult.SavedResult = true
 	return handleResult
 }
 

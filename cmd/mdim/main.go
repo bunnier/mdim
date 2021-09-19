@@ -18,7 +18,6 @@ type BaseOptions struct {
 	AbsDocFolder   string
 	AbsImgFolder   string
 	SingleDocument string
-	DoSave         bool
 }
 
 var baseOptions = &BaseOptions{}
@@ -27,7 +26,6 @@ func initBaseOptions(flags *pflag.FlagSet) {
 	flags.StringVarP(&baseOptions.SingleDocument, "doc", "m", "", "Assign the target markdown document. There must be at least one of '--doc' and '--docFolder'.")
 	flags.StringVarP(&baseOptions.AbsDocFolder, "docFolder", "f", "", "Assign the folder which markdown documents save in, also can be provided by setting env variable named 'mdim_docFolder'")
 	flags.StringVarP(&baseOptions.AbsImgFolder, "imgFolder", "i", "", "Must not be empty. Assign the folder which images save in, also can be provided by setting env variable named 'mdim_imgFolder'.")
-	flags.BoolVarP(&baseOptions.DoSave, "save", "s", false, "Set the option to save markdown document changes, otherwise print scan result only.")
 }
 
 func validateBaseOptions(cmd *cobra.Command) {
