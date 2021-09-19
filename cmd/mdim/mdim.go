@@ -85,12 +85,14 @@ func doMdimCmd(param *MdimParam) {
 	fmt.Println("  Starting to scan markdown document..")
 	fmt.Println("==========================================")
 
+	// workflow steps
+	steps := []markdown.ImageMaintainStep{markdown.FixLocalImageRelpathStep}
+	if param.DoWebImgDownload {
+		steps = append(steps, markdown.DownloadImageStep)
+	}
+
 	// Scan docs in docFolder to maintain image tags.
-	markdownHandleResults := markdown.WalkDirToHandleDocs(
-		param.AbsDocFolder,
-		param.AbsImgFolder,
-		param.DoSave,
-		param.DoWebImgDownload)
+	markdownHandleResults := markdown.WalkDirToHandleDocs(param.AbsDocFolder, param.AbsImgFolder, param.DoSave, steps)
 
 	hasInterruptErr := false
 	allRefImgsAbsPathSet := base.NewSet(100)

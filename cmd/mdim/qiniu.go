@@ -11,6 +11,7 @@ type QiniuParam struct {
 	Sk     string
 	Ak     string
 	Bucket string
+	Domain string
 }
 
 var qiniuParam = &QiniuParam{}
@@ -20,6 +21,7 @@ func init() {
 	flags.StringVarP(&qiniuParam.Sk, "sk", "s", "", "Must not be empty. Assign the SK(Secret Key) of Qiniu SDK.")
 	flags.StringVarP(&qiniuParam.Ak, "ak", "a", "", "Must not be empty. Assign the AK(Access Key) of Qiniu SDK.")
 	flags.StringVarP(&qiniuParam.Bucket, "bucket", "b", "", "Must not be empty. Assign the Bucket of Qiniu SDK.")
+	flags.StringVarP(&qiniuParam.Domain, "domain", "d", "", "The domain of uploaded image url. If do not assign the option, will use first domain in specific bucket.")
 }
 
 var qiniuCmd = &cobra.Command{
@@ -37,6 +39,10 @@ var qiniuCmd = &cobra.Command{
 
 		if qiniuParam.Bucket == "" {
 			qiniuParam.Ak = os.Getenv("mdim_qiniu_bucket")
+		}
+
+		if qiniuParam.Domain == "" {
+			qiniuParam.Ak = os.Getenv("mdim_qiniu_domain")
 		}
 
 		if qiniuParam.Ak == "" || qiniuParam.Sk == "" || qiniuParam.Bucket == "" {

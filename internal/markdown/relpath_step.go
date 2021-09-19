@@ -7,23 +7,8 @@ import (
 	"path/filepath"
 )
 
-// MaintainImageRelateUrl
-func MaintainImageRelateUrl(imgTag *MarkdownImageTag, handleResult MarkdownHandleResult) error {
-	if fixedPath, absFixedPath, err := getFixImgRelpath(imgTag.DocPath, imgTag.ImgPath, imgTag.AbsImgFolder); err != nil {
-		if handleResult.RelPathCannotFixedErr == nil {
-			handleResult.RelPathCannotFixedErr = make([]error, 0, 1)
-		}
-		handleResult.RelPathCannotFixedErr = append(handleResult.RelPathCannotFixedErr, err)
-		return err
-	} else {
-		handleResult.AllRefImgs.Add(absFixedPath)
-		imgTag.WholeTag = fmt.Sprintf("![%s](%s)", imgTag.ImgTitle, fixedPath)
-		return nil
-	}
-}
-
-// TryFixLocalImageRelpath
-func TryFixLocalImageRelpath(imgTag *MarkdownImageTag, handleResult MarkdownHandleResult) error {
+// FixLocalImageRelpathStep
+func FixLocalImageRelpathStep(imgTag *MarkdownImageTag, handleResult MarkdownHandleResult) error {
 	if imgTag.IsWebUrl {
 		return nil // No suit.
 	}

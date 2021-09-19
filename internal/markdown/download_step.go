@@ -22,8 +22,8 @@ var (
 	slashReplaceRegexp = regexp.MustCompile(`\\`)
 )
 
-// TryDownloadImage
-func TryDownloadImage(imgTag *MarkdownImageTag, handleResult MarkdownHandleResult) error {
+// DownloadImageStep
+func DownloadImageStep(imgTag *MarkdownImageTag, handleResult MarkdownHandleResult) error {
 	if !imgTag.IsWebUrl {
 		return nil // No suit.
 	}
