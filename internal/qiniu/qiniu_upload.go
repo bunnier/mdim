@@ -3,6 +3,7 @@ package qiniu
 import (
 	"context"
 	"errors"
+	"path/filepath"
 	"time"
 
 	"github.com/qiniu/go-sdk/v7/auth/qbox"
@@ -16,6 +17,7 @@ type QiniuUploadApi struct {
 	ak              string
 	sk              string
 	bucket          string
+	defaultFolder   string
 	domain          string
 	token           string
 	tokenExpireTime time.Time
@@ -29,6 +31,11 @@ type QiniuUploadApiOption func(api *QiniuUploadApi)
 func QiniuUploadApiDomainOption(domain string) QiniuUploadApiOption {
 	return func(api *QiniuUploadApi) {
 		api.domain = domain
+	}
+}
+func QiniuUploadApiDefaultFolderOption(defaultFolder string) QiniuUploadApiOption {
+	return func(api *QiniuUploadApi) {
+		api.defaultFolder = defaultFolder
 	}
 }
 
@@ -98,6 +105,9 @@ func (api *QiniuUploadApi) Upload(remoteFilepath, localFilepath string) (string,
 
 // Upload file to Quniu cloud, and then return the public url.
 func (api *QiniuUploadApi) UploadContext(ctx context.Context, remoteFilepath, localFilepath string) (string, error) {
+	if remoteFilepath == "" {
+		remoteFilepath = filepath.Join(api.defaultFolder, filepath.Base(localFilepath))
+	}
 	api.refreshToken()
 	cfg := storage.Config{}
 	formUploader := storage.NewFormUploader(&cfg)

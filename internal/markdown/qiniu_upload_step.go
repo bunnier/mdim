@@ -11,7 +11,7 @@ import (
 
 // NewUploadLocalImgToQiniuStep
 func NewUploadLocalImgToQiniuStep(api *qiniu.QiniuUploadApi) ImageMaintainStep {
-	return func(imgTag *MarkdownImageTag, handleResult MarkdownHandleResult) error {
+	return func(imgTag *ImageTag, handleResult *HandleResult) error {
 		if imgTag.IsWebUrl {
 			return nil // No suit.
 		}

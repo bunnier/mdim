@@ -9,8 +9,8 @@ import (
 )
 
 // DeleteNoRefImgs iterate imageFolder to find & delete no reference images.
-func DeleteNoRefImgs(absImgFolder string, allRefImgsAbsPathSet base.Set, doImgDel bool) []ImageHandleResult {
-	handleResultCh := make(chan ImageHandleResult)
+func DeleteNoRefImgs(absImgFolder string, allRefImgsAbsPathSet base.Set, doImgDel bool) []HandleResult {
+	handleResultCh := make(chan HandleResult)
 	count := 0 // The count of handling files.
 	filepath.WalkDir(absImgFolder, func(imgPath string, d os.DirEntry, err error) error {
 		if d.IsDir() {
@@ -23,7 +23,7 @@ func DeleteNoRefImgs(absImgFolder string, allRefImgsAbsPathSet base.Set, doImgDe
 
 		count++
 		go func() {
-			handleResult := ImageHandleResult{ImagePath: imgPath}
+			handleResult := HandleResult{ImagePath: imgPath}
 			defer func() {
 				// Ensure to pass handling result to main goroutine, otherwise can cause deadlock.
 				handleResultCh <- handleResult
@@ -42,7 +42,7 @@ func DeleteNoRefImgs(absImgFolder string, allRefImgsAbsPathSet base.Set, doImgDe
 	})
 
 	// handling result receiver
-	handleResultSlice := make([]ImageHandleResult, 0, count)
+	handleResultSlice := make([]HandleResult, 0, count)
 	for count > 0 {
 		handleResult := <-handleResultCh
 		handleResultSlice = append(handleResultSlice, handleResult)

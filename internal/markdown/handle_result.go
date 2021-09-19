@@ -7,7 +7,7 @@ import (
 	"github.com/bunnier/mdim/internal/base"
 )
 
-type MarkdownHandleResult struct {
+type HandleResult struct {
 	DocPath    string
 	AllRefImgs base.Set
 
@@ -21,7 +21,7 @@ type MarkdownHandleResult struct {
 	Err error
 }
 
-func (handleResult MarkdownHandleResult) String() string {
+func (handleResult HandleResult) String() string {
 	var resultSb strings.Builder
 	switch {
 	case handleResult.Err != nil:

@@ -21,8 +21,8 @@ var (
 	imgPathRegexp *regexp.Regexp = regexp.MustCompile(`^(?:(?:\.{1,2}[/\\])+)([^/\\\n]+)?[/\\](.+)$`)
 )
 
-// MarkdownImageTag represent an image tag in markdown document.
-type MarkdownImageTag struct {
+// ImageTag represent an image tag in markdown document.
+type ImageTag struct {
 	IsWebUrl     bool
 	WholeTag     string
 	ImgTitle     string
@@ -33,19 +33,22 @@ type MarkdownImageTag struct {
 }
 
 // ImageMaintainStep is markdown handle step.
-type ImageMaintainStep func(imgTag *MarkdownImageTag, handleResult MarkdownHandleResult) error
+type ImageMaintainStep func(imgTag *ImageTag, handleResult *HandleResult) error
 
 // WalkDirToHandleDocs will scan docs in docFolder to fix image relative path.
 // The first return is all the reference image paths Set.
-func WalkDirToHandleDocs(absDocPath string, absDocFolder string, absImgFolder string, doSave bool, steps []ImageMaintainStep) []MarkdownHandleResult {
-	handleResultCh := make(chan MarkdownHandleResult)
-	wg := sync.WaitGroup{}
+func WalkDirToHandleDocs(absDocPath string, absDocFolder string, absImgFolder string, doSave bool, steps []ImageMaintainStep) []HandleResult {
+	handleResultCh := make(chan HandleResult)
 
 	fileNum := 0 // The count of handling files.
 	if absDocPath != "" {
 		fileNum++
-		handleResultCh <- handleDoc(absDocPath, absImgFolder, doSave, steps)
+		go func() {
+			handleResultCh <- handleDoc(absDocPath, absImgFolder, doSave, steps)
+			close(handleResultCh)
+		}()
 	} else {
+		wg := sync.WaitGroup{}
 		filepath.WalkDir(absDocFolder, func(docPath string, d os.DirEntry, err error) error {
 			// Just deal with .md docs.
 			if d.IsDir() || !strings.HasSuffix(docPath, ".md") {
@@ -69,7 +72,7 @@ func WalkDirToHandleDocs(absDocPath string, absDocFolder string, absImgFolder st
 		}()
 	}
 
-	aggreagateResult := make([]MarkdownHandleResult, 0, fileNum)
+	aggreagateResult := make([]HandleResult, 0, fileNum)
 	for {
 		handleResult, chOpen := <-handleResultCh
 		if !chOpen {
@@ -83,8 +86,8 @@ func WalkDirToHandleDocs(absDocPath string, absDocFolder string, absImgFolder st
 
 // Fix the image urls of the doc.
 // The first return is all the reference image paths Set.
-func handleDoc(docPath string, absImgFolder string, doSave bool, steps []ImageMaintainStep) MarkdownHandleResult {
-	handleResult := MarkdownHandleResult{DocPath: docPath}
+func handleDoc(docPath string, absImgFolder string, doSave bool, steps []ImageMaintainStep) HandleResult {
+	handleResult := HandleResult{DocPath: docPath}
 	// get doc file content
 	contentBytes, err := os.ReadFile(docPath)
 	if err != nil {
@@ -104,7 +107,7 @@ func handleDoc(docPath string, absImgFolder string, doSave bool, steps []ImageMa
 		imgPath := matchParts[2]                                   // img path
 		imgProtocol := strings.ToLower(matchParts[3])              // protocol
 
-		imgTagInfo := &MarkdownImageTag{
+		imgTagInfo := &ImageTag{
 			IsWebUrl:     imgProtocol != "",
 			Protocal:     imgProtocol,
 			WholeTag:     wholeImgTag,
@@ -115,7 +118,7 @@ func handleDoc(docPath string, absImgFolder string, doSave bool, steps []ImageMa
 		}
 
 		for _, handleStep := range steps {
-			handleStep(imgTagInfo, handleResult)
+			handleStep(imgTagInfo, &handleResult)
 		}
 
 		return imgTagInfo.WholeTag

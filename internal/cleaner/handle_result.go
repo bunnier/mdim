@@ -2,13 +2,13 @@ package cleaner
 
 import "fmt"
 
-type ImageHandleResult struct {
+type HandleResult struct {
 	ImagePath string
 	Deleted   bool
 	Err       error
 }
 
-func (result ImageHandleResult) String() string {
+func (result HandleResult) String() string {
 	switch {
 	case result.Err != nil:
 		return fmt.Sprintf("[image handle]:Find a no reference image, but fail to delete.\n----> %s\n----> %s", result.ImagePath, result.Err.Error())

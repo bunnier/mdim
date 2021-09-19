@@ -20,7 +20,7 @@ var (
 )
 
 // DownloadImageStep
-func DownloadImageStep(imgTag *MarkdownImageTag, handleResult MarkdownHandleResult) error {
+func DownloadImageStep(imgTag *ImageTag, handleResult *HandleResult) error {
 	if !imgTag.IsWebUrl {
 		return nil // No suit.
 	}

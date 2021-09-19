@@ -8,7 +8,7 @@ import (
 )
 
 // FixLocalImageRelpathStep
-func FixLocalImageRelpathStep(imgTag *MarkdownImageTag, handleResult MarkdownHandleResult) error {
+func FixLocalImageRelpathStep(imgTag *ImageTag, handleResult *HandleResult) error {
 	if imgTag.IsWebUrl {
 		return nil // No suit.
 	}

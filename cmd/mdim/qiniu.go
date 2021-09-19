@@ -15,6 +15,7 @@ type QiniuOptions struct {
 	Sk     string
 	Ak     string
 	Bucket string
+	Folder string
 	Domain string
 }
 
@@ -27,6 +28,7 @@ func init() {
 	flags.StringVarP(&qiniuOptions.Ak, "ak", "", "", "Must not be empty. Assign the AK(Access Key) of Qiniu SDK, also can be provided by setting env variable named 'mdim_qiniu_ak'.")
 	flags.StringVarP(&qiniuOptions.Bucket, "bucket", "b", "", "Must not be empty. Assign the Bucket of Qiniu SDK, also can be provided by setting env variable named 'mdim_qiniu_bucket'.")
 	flags.StringVarP(&qiniuOptions.Domain, "domain", "d", "", "The domain of uploaded image url, also can be provided by setting env variable named 'mdim_qiniu_domain'. If do not assign the option, will use first domain in specific bucket")
+	flags.StringVarP(&qiniuOptions.Folder, "folder", "u", "", "After uploaded, you images can access in this url {domain}/{path}/{img_name}")
 }
 
 var qiniuCmd = &cobra.Command{
@@ -41,15 +43,15 @@ var qiniuCmd = &cobra.Command{
 		}
 
 		if qiniuOptions.Sk == "" {
-			qiniuOptions.Ak = os.Getenv("mdim_qiniu_sk")
+			qiniuOptions.Sk = os.Getenv("mdim_qiniu_sk")
 		}
 
 		if qiniuOptions.Bucket == "" {
-			qiniuOptions.Ak = os.Getenv("mdim_qiniu_bucket")
+			qiniuOptions.Bucket = os.Getenv("mdim_qiniu_bucket")
 		}
 
 		if qiniuOptions.Domain == "" {
-			qiniuOptions.Ak = os.Getenv("mdim_qiniu_domain")
+			qiniuOptions.Domain = os.Getenv("mdim_qiniu_domain")
 		}
 
 		if qiniuOptions.Ak == "" || qiniuOptions.Sk == "" || qiniuOptions.Bucket == "" {
@@ -66,7 +68,11 @@ func doQiniuCmd(param *QiniuOptions) {
 	fmt.Println("  Starting to scan markdown document(s)..")
 	fmt.Println("==========================================")
 
-	qiniuApi := qiniu.NewQuniuUploadApi(param.Ak, param.Sk, param.Bucket, qiniu.QiniuUploadApiDomainOption(param.Domain))
+	qiniuApi := qiniu.NewQuniuUploadApi(
+		param.Ak, param.Sk, param.Bucket,
+		qiniu.QiniuUploadApiDomainOption(param.Domain),
+		qiniu.QiniuUploadApiDefaultFolderOption(param.Folder),
+	)
 
 	// Scan docs in docFolder to maintain image tags.
 	markdownHandleResults := markdown.WalkDirToHandleDocs(
@@ -76,9 +82,7 @@ func doQiniuCmd(param *QiniuOptions) {
 	hasInterruptErr := false
 	allRefImgsAbsPathSet := base.NewSet(100)
 	for _, handleResult := range markdownHandleResults {
-		if handleResult.HasChangeDuringWorkflow ||
-			handleResult.RelPathCannotFixedErr != nil ||
-			handleResult.WebImgDownloadErr != nil {
+		if handleResult.HasChangeDuringWorkflow || handleResult.UploadToQiniuErr != nil {
 			fmt.Println(handleResult.String())
 			fmt.Println()
 		}
