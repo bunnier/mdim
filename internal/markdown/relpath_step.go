@@ -14,9 +14,6 @@ func FixLocalImageRelpathStep(imgTag *MarkdownImageTag, handleResult MarkdownHan
 	}
 
 	if fixedPath, absFixedPath, err := getFixImgRelpath(imgTag.DocPath, imgTag.ImgPath, imgTag.AbsImgFolder); err != nil {
-		if handleResult.RelPathCannotFixedErr == nil {
-			handleResult.RelPathCannotFixedErr = make([]error, 0, 1)
-		}
 		handleResult.RelPathCannotFixedErr = append(handleResult.RelPathCannotFixedErr, err)
 		return err
 	} else {

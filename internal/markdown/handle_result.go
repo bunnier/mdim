@@ -11,26 +11,27 @@ type MarkdownHandleResult struct {
 	DocPath    string
 	AllRefImgs base.Set
 
-	RelPathCannotFixedErr   []error
-	HasChangeDuringMaintain bool
-	SavedMaintainResult     bool
+	HasChangeDuringWorkflow bool
+	SavedResult             bool
 
-	WebImgDownloadErr []error
+	RelPathCannotFixedErr []error
+	WebImgDownloadErr     []error
+	UploadToQiniuErr      []error
 
 	Err error
 }
 
-func (handleResult MarkdownHandleResult) ToString() string {
+func (handleResult MarkdownHandleResult) String() string {
 	var resultSb strings.Builder
 	switch {
 	case handleResult.Err != nil:
-		resultSb.WriteString(fmt.Sprintf("[markdown handle]:Occur an error when maintain doc.\n----> %s\n----> %s", handleResult.DocPath, handleResult.Err.Error()))
-	case !handleResult.HasChangeDuringMaintain:
-		resultSb.WriteString(fmt.Sprintf("[markdown handle]:Correct doc.\n----> %s", handleResult.DocPath))
-	case !handleResult.SavedMaintainResult:
-		resultSb.WriteString(fmt.Sprintf("[markdown handle]:Find relative path error or web image in a doc, do not change document this time.\n----> %s", handleResult.DocPath))
-	case handleResult.SavedMaintainResult:
-		resultSb.WriteString(fmt.Sprintf("[markdown handle]:Find relative path error or web image in a doc, change the document successfully.\n----> %s", handleResult.DocPath))
+		resultSb.WriteString(fmt.Sprintf("[markdown handle]: Occur an error when maintain doc.\n----> %s\n----> %s", handleResult.DocPath, handleResult.Err.Error()))
+	case !handleResult.HasChangeDuringWorkflow:
+		resultSb.WriteString(fmt.Sprintf("[markdown handle]: Nothing to do for document.\n----> %s", handleResult.DocPath))
+	case !handleResult.SavedResult:
+		resultSb.WriteString(fmt.Sprintf("[markdown handle]: Exec workflow successfully, but did not save document this time.\n----> %s", handleResult.DocPath))
+	case handleResult.SavedResult:
+		resultSb.WriteString(fmt.Sprintf("[markdown handle]: Exec workflow and save the document successfully.\n----> %s", handleResult.DocPath))
 	default:
 		resultSb.WriteString("Impossible error.")
 	}
@@ -45,6 +46,13 @@ func (handleResult MarkdownHandleResult) ToString() string {
 	if len(handleResult.WebImgDownloadErr) > 0 {
 		resultSb.WriteString("\n------> Notice! Error occured during downloading images.")
 		for _, v := range handleResult.WebImgDownloadErr {
+			resultSb.WriteString(fmt.Sprintf("\n--------> %s", v.Error()))
+		}
+	}
+
+	if len(handleResult.UploadToQiniuErr) > 0 {
+		resultSb.WriteString("\n------> Notice! Error occured during uploading images.")
+		for _, v := range handleResult.UploadToQiniuErr {
 			resultSb.WriteString(fmt.Sprintf("\n--------> %s", v.Error()))
 		}
 	}

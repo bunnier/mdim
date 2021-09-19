@@ -13,8 +13,13 @@ import (
 	"github.com/bunnier/mdim/internal/base"
 )
 
-// Input=Markdown line, Group1=img title, Group2=img path, Group3=protocol, Group4=img filename
-var imgTagRegexp *regexp.Regexp = regexp.MustCompile(`!\[([^]]*)]\(((?:(http[s]?://|ftp://)|[\\\./]*)(?:(?:[^\\/\n]+[\\/])*)([^\\/\n]+\.[a-zA-Z]{1,5}))\)`)
+var (
+	// Input=Markdown line, Group1=img title, Group2=img path, Group3=protocol, Group4=img filename
+	imgTagRegexp *regexp.Regexp = regexp.MustCompile(`!\[([^]]*)]\(((?:(http[s]?://|ftp://)|[\\\./]*)(?:(?:[^\\/\n]+[\\/])*)([^\\/\n]+\.[a-zA-Z]{1,5}))\)`)
+
+	// Input=Relative path, Group1=First named folder name, Group2=relative path in imgFolder
+	imgPathRegexp *regexp.Regexp = regexp.MustCompile(`^(?:(?:\.{1,2}[/\\])+)([^/\\\n]+)?[/\\](.+)$`)
+)
 
 // MarkdownImageTag represent an image tag in markdown document.
 type MarkdownImageTag struct {
@@ -111,9 +116,9 @@ func handleDoc(docPath string, absImgFolder string, doSave bool, steps []ImageMa
 		return imgTagInfo.WholeTag
 	})
 
-	handleResult.HasChangeDuringMaintain = fixedContent != content
+	handleResult.HasChangeDuringWorkflow = fixedContent != content
 
-	if !handleResult.HasChangeDuringMaintain || !doSave {
+	if !handleResult.HasChangeDuringWorkflow || !doSave {
 		return handleResult
 	}
 
@@ -123,7 +128,7 @@ func handleDoc(docPath string, absImgFolder string, doSave bool, steps []ImageMa
 		return handleResult
 	}
 
-	handleResult.SavedMaintainResult = true
+	handleResult.SavedResult = true
 	return handleResult
 }
 

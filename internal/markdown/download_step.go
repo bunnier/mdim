@@ -12,9 +12,6 @@ import (
 )
 
 var (
-	// Input=Relative path, Group1=First named folder name, Group2=relative path in imgFolder
-	imgPathRegexp *regexp.Regexp = regexp.MustCompile(`^(?:(?:\.{1,2}[/\\])+)([^/\\\n]+)?[/\\](.+)$`)
-
 	// For get web image suffix.
 	httpImgRegex = regexp.MustCompile(`^(?:http[s]?://)(?:[^/]+/)+.+(\.[a-zA-Z]{1,5})$`)
 
@@ -29,9 +26,6 @@ func DownloadImageStep(imgTag *MarkdownImageTag, handleResult MarkdownHandleResu
 	}
 
 	if fixedPath, absFixedPath, err := convertRemoteImageToLocal(imgTag.DocPath, imgTag.ImgPath, imgTag.AbsImgFolder); err != nil {
-		if handleResult.WebImgDownloadErr == nil {
-			handleResult.WebImgDownloadErr = make([]error, 0, 1)
-		}
 		handleResult.WebImgDownloadErr = append(handleResult.WebImgDownloadErr, err)
 		return err
 	} else {
