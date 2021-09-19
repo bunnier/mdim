@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	ak          string = "RHAGGu151y6ZaE_D_Ds3eMG_ozLk9hok1nui2f9X"
-	sk          string = "hR4Ni1V85EPXSH5PWkueiHyM14JEjtX_HmHl7pDE"
-	bucket      string = "1024baby"
-	testImgPath string = "/Users/zhongrui/Desktop/儿童语言发展.jpg"
-	testDomain  string = "img.1024baby.com"
+	ak          string = ""
+	sk          string = ""
+	bucket      string = ""
+	testImgPath string = ""
+	testDomain  string = ""
 	useHTTPS    bool   = true
 )
 
