@@ -37,32 +37,37 @@ type ImageMaintainStep func(imgTag *MarkdownImageTag, handleResult MarkdownHandl
 
 // WalkDirToHandleDocs will scan docs in docFolder to fix image relative path.
 // The first return is all the reference image paths Set.
-func WalkDirToHandleDocs(absDocFolder string, absImgFolder string, doSave bool, steps []ImageMaintainStep) []MarkdownHandleResult {
+func WalkDirToHandleDocs(absDocPath string, absDocFolder string, absImgFolder string, doSave bool, steps []ImageMaintainStep) []MarkdownHandleResult {
 	handleResultCh := make(chan MarkdownHandleResult)
 	wg := sync.WaitGroup{}
 
 	fileNum := 0 // The count of handling files.
-	filepath.WalkDir(absDocFolder, func(docPath string, d os.DirEntry, err error) error {
-		// Just deal with .md docs.
-		if d.IsDir() || !strings.HasSuffix(docPath, ".md") {
-			return nil
-		}
-
+	if absDocPath != "" {
 		fileNum++
-		wg.Add(1)
+		handleResultCh <- handleDoc(absDocPath, absImgFolder, doSave, steps)
+	} else {
+		filepath.WalkDir(absDocFolder, func(docPath string, d os.DirEntry, err error) error {
+			// Just deal with .md docs.
+			if d.IsDir() || !strings.HasSuffix(docPath, ".md") {
+				return nil
+			}
+
+			fileNum++
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				handleResultCh <- handleDoc(docPath, absImgFolder, doSave, steps)
+			}()
+
+			return nil
+		})
+
+		// Waiting for all goroutine done to close channel.
 		go func() {
-			defer wg.Done()
-			handleResultCh <- handleDoc(docPath, absImgFolder, doSave, steps)
+			wg.Wait()
+			close(handleResultCh)
 		}()
-
-		return nil
-	})
-
-	// Waiting for all goroutine done to close channel.
-	go func() {
-		wg.Wait()
-		close(handleResultCh)
-	}()
+	}
 
 	aggreagateResult := make([]MarkdownHandleResult, 0, fileNum)
 	for {

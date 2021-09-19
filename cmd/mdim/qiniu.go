@@ -63,14 +63,14 @@ var qiniuCmd = &cobra.Command{
 
 func doQiniuCmd(param *QiniuOptions) {
 	fmt.Println("==========================================")
-	fmt.Println("  Starting to scan markdown document..")
+	fmt.Println("  Starting to scan markdown document(s)..")
 	fmt.Println("==========================================")
 
 	qiniuApi := qiniu.NewQuniuUploadApi(param.Ak, param.Sk, param.Bucket, qiniu.QiniuUploadApiDomainOption(param.Domain))
 
 	// Scan docs in docFolder to maintain image tags.
 	markdownHandleResults := markdown.WalkDirToHandleDocs(
-		baseOptions.AbsDocFolder, baseOptions.AbsImgFolder, baseOptions.DoSave,
+		baseOptions.SingleDocument, baseOptions.AbsDocFolder, baseOptions.AbsImgFolder, baseOptions.DoSave,
 		[]markdown.ImageMaintainStep{markdown.NewUploadLocalImgToQiniuStep(qiniuApi)})
 
 	hasInterruptErr := false
