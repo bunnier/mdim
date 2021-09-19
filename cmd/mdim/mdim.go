@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/bunnier/mdim/internal/base"
@@ -12,9 +13,9 @@ import (
 
 // MdimOptions are command-line options.
 type MdimOptions struct {
-	RelFix           bool
-	DoImgDel         bool
-	DoWebImgDownload bool
+	DoRelFix      bool
+	DoDelete      bool
+	DoImgDownload bool
 }
 
 var mdimOptions = &MdimOptions{}
@@ -22,9 +23,9 @@ var mdimOptions = &MdimOptions{}
 func init() {
 	flags := mdimCmd.Flags()
 	initBaseOptions(flags)
-	flags.BoolVarP(&mdimOptions.RelFix, "relfix", "r", false, "Set this option to fix wrong local relative path of images after moved document.")
-	flags.BoolVarP(&mdimOptions.DoImgDel, "delete", "d", false, "Set this option to delete no reference images, otherwise print the paths only.")
-	flags.BoolVarP(&mdimOptions.DoWebImgDownload, "web", "w", false, "Set this option to download reference web images to 'imgFolder'.")
+	flags.BoolVarP(&mdimOptions.DoRelFix, "relfix", "r", false, "Set this option to fix wrong local relative path of images after moved document.")
+	flags.BoolVarP(&mdimOptions.DoDelete, "delete", "d", false, "Set this option to delete no reference images. Only work in batch mode (with 'docFolder' option).")
+	flags.BoolVarP(&mdimOptions.DoImgDownload, "web", "w", false, "Set this option to download reference web images to 'imgFolder'.")
 }
 
 var mdimCmd = &cobra.Command{
@@ -35,6 +36,11 @@ Github: https://github.com/bunnier/mdim`,
 	Version: "2.0.0",
 	Run: func(cmd *cobra.Command, args []string) {
 		validateBaseOptions(cmd)
+
+		if mdimOptions.DoDelete && baseOptions.SingleDocument != "" {
+			log.Fatal("'-d/--delete' only work with batch mode (with '--docFolder' option)")
+		}
+
 		doMdimCmd(mdimOptions)
 	},
 }
@@ -47,11 +53,11 @@ func doMdimCmd(param *MdimOptions) {
 	// workflow steps
 	steps := make([]markdown.ImageMaintainStep, 0, 2)
 
-	if param.RelFix {
+	if param.DoRelFix {
 		steps = append(steps, markdown.FixLocalImageRelpathStep)
 	}
 
-	if param.DoWebImgDownload {
+	if param.DoImgDownload {
 		steps = append(steps, markdown.DownloadImageStep)
 	}
 
@@ -79,7 +85,7 @@ func doMdimCmd(param *MdimOptions) {
 		os.Exit(10)
 	}
 
-	if param.DoImgDel {
+	if param.DoDelete {
 		fmt.Println("==========================================")
 		fmt.Println("  Starting to scan image(s)..")
 		fmt.Println("==========================================")
