@@ -40,14 +40,14 @@ type ImageMaintainStep func(imgTag *ImageTag, handleResult *HandleResult) error
 func WalkDirToHandleDocs(absDocPath string, absDocFolder string, absImgFolder string, steps []ImageMaintainStep) []HandleResult {
 	handleResultCh := make(chan HandleResult)
 
-	fileNum := 0 // The count of handling files.
-	if absDocPath != "" {
+	fileNum := 0          // The count of handling files.
+	if absDocPath != "" { // single file workflow
 		fileNum++
 		go func() {
 			handleResultCh <- handleDoc(absDocPath, absImgFolder, steps)
 			close(handleResultCh)
 		}()
-	} else {
+	} else { // folder
 		wg := sync.WaitGroup{}
 		filepath.WalkDir(absDocFolder, func(docPath string, d os.DirEntry, err error) error {
 			// Just deal with .md docs.
@@ -73,11 +73,7 @@ func WalkDirToHandleDocs(absDocPath string, absDocFolder string, absImgFolder st
 	}
 
 	aggreagateResult := make([]HandleResult, 0, fileNum)
-	for {
-		handleResult, chOpen := <-handleResultCh
-		if !chOpen {
-			break
-		}
+	for handleResult := range handleResultCh {
 		aggreagateResult = append(aggreagateResult, handleResult)
 	}
 
